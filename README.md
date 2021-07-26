@@ -1,8 +1,13 @@
 # 202107-face-detector
 
-TODO: 説明文を書く。
+InsightFaceを使った顔検出サーバの実装例です。
+詳しくは以下の記事をご覧ください。
 
-TODO: 記事へのURLを書く。
+[InsightFaceとFastAPIで顔検出サーバを作ってみた](https://zenn.dev/yuyakato/articles/6a1d8177901381)
+
+## 実行手順
+
+実行手順は以下の通りです。
 
 ```sh
 docker-compose build
@@ -14,6 +19,8 @@ curl -X POST \
   http://localhost:8000/detect
 ```
 
-`43730.jpg`は「ぱくたそ」からダウンロードしました。
+## 動作確認用の画像ファイル
+
+動作確認用の画像ファイル`43730.jpg`は「ぱくたそ」からダウンロードしました。
 
 [顔に手を添えカメラ目線の美白女性の写真を無料ダウンロード（フリー素材） - ぱくたそ](https://www.pakutaso.com/20210219041post-33497.html)

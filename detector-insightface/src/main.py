@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 
 import fastapi
 import fastapi.middleware.cors
@@ -45,40 +46,51 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 
     faces = face_analysis.get(image)
 
+    file.file.seek(0)
+    sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
+    file_size = file.file.tell()
+
     return {
-        "width": image.shape[1],
-        "height": image.shape[0],
-        "numberOfFaces": len(faces),
-        "faces": [
-            {
-                "score": face.det_score.astype(float),
-                "boundingBox": {
-                    "x1": face.bbox[0].astype(float),
-                    "y1": face.bbox[1].astype(float),
-                    "x2": face.bbox[2].astype(float),
-                    "y2": face.bbox[3].astype(float),
-                },
-                "keyPoints": [
-                    {"x": xy[0].astype(float), "y": xy[1].astype(float)}
-                    for xy in face.kps
-                ],
-                "landmarks": {
-                    "3d_68": [
-                        {
-                            "x": xyz[0].astype(float),
-                            "y": xyz[1].astype(float),
-                            "z": xyz[2].astype(float),
-                        }
-                        for xyz in face.landmark_3d_68
-                    ],
-                    "2d_106": [
+        "service": SERVICE,
+        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "request": {
+            "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
+        },
+        "response": {
+            "width": image.shape[1],
+            "height": image.shape[0],
+            "numberOfFaces": len(faces),
+            "faces": [
+                {
+                    "score": face.det_score.astype(float),
+                    "boundingBox": {
+                        "x1": face.bbox[0].astype(float),
+                        "y1": face.bbox[1].astype(float),
+                        "x2": face.bbox[2].astype(float),
+                        "y2": face.bbox[3].astype(float),
+                    },
+                    "keyPoints": [
                         {"x": xy[0].astype(float), "y": xy[1].astype(float)}
-                        for xy in face.landmark_2d_106
+                        for xy in face.kps
                     ],
-                },
-                "attributes": {"sex": face.sex, "age": face.age},
-                # TODO: face.embedding
-            }
-            for face in faces
-        ],
+                    "landmarks": {
+                        "3d_68": [
+                            {
+                                "x": xyz[0].astype(float),
+                                "y": xyz[1].astype(float),
+                                "z": xyz[2].astype(float),
+                            }
+                            for xyz in face.landmark_3d_68
+                        ],
+                        "2d_106": [
+                            {"x": xy[0].astype(float), "y": xy[1].astype(float)}
+                            for xy in face.landmark_2d_106
+                        ],
+                    },
+                    "attributes": {"sex": face.sex, "age": face.age},
+                    # TODO: face.embedding
+                }
+                for face in faces
+            ],
+        },
     }

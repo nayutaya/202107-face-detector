@@ -17,7 +17,17 @@ export default function Page() {
         setImage({
           file: imageFile,
           dataUrl: fileReader.result,
-        })
+        });
+
+        const formData = new FormData();
+        formData.append("file", imageFile)
+        const param = {
+          method: "POST",
+          body: formData,
+        };
+        // TODO: replace to internal API.
+        fetch("http://192.168.1.204:8000/detect", param)
+          .then((result) => console.log({result}));
       }, false);
       fileReader.readAsDataURL(imageFile);
     }
@@ -36,7 +46,7 @@ export default function Page() {
   return (
     <div>
       <Head>
-        <title>Create Next App</title>
+        <title>face-detector</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Dropzone onDrop={handleFile}>

@@ -23,6 +23,16 @@ export default function Page() {
     }
   }
 
+  const backgroundStyle = (image == null ? {} :
+    {
+      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      backgroundImage: `url(${image.dataUrl})`,
+      backgroundSize: "contain",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+    }
+  );
+
   return (
     <div>
       <Head>
@@ -33,9 +43,10 @@ export default function Page() {
         {({getRootProps, getInputProps}) => (
           <div
               style={{
-                width: "200px",
-                height: "200px",
+                width: "400px",
+                height: "300px",
                 border: "1px dotted black",
+                ...backgroundStyle
               }}
               {...getRootProps()}>
             <input {...getInputProps()} />
@@ -43,11 +54,6 @@ export default function Page() {
           </div>
         )}
       </Dropzone>
-      {image == null ? null :
-        <div>
-          <img src={image.dataUrl} />
-        </div>
-      }
     </div>
   );
 }

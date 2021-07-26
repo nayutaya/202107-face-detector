@@ -24,8 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# face_analysis = insightface.app.FaceAnalysis()
-# face_analysis.prepare(ctx_id=0, det_size=(640, 640))
+face_analysis = insightface.app.FaceAnalysis()
+face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 
 
 @app.get("/")
@@ -35,27 +35,17 @@ async def get_root():
         "time": int(datetime.datetime.now().timestamp() * 1000),
     }
 
+
 @app.post("/detect")
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
-    return {
-        "fileName": file.filename,
-        "contentType": file.content_type,
-    }
-
-
-"""
-@app.get("/detect/{object_id}")
-async def get_detection_by_object_id(object_id: str):
-    image_path = make_nested_id_path(OBJECT_DIR, object_id)
-
-    image = PIL.Image.open(image_path).convert("RGB")
+    assert file.content_type == "image/jpeg"
+    image = PIL.Image.open(file.file).convert("RGB")
     image = np.array(image)
     image = image[:, :, [2, 1, 0]]  # RGB to BGR
 
     faces = face_analysis.get(image)
 
     return {
-        "objectId": object_id,
         "width": image.shape[1],
         "height": image.shape[0],
         "numberOfFaces": len(faces),
@@ -69,10 +59,7 @@ async def get_detection_by_object_id(object_id: str):
                     "y2": face.bbox[3].astype(float),
                 },
                 "keyPoints": [
-                    {
-                        "x": xy[0].astype(float),
-                        "y": xy[1].astype(float),
-                    }
+                    {"x": xy[0].astype(float), "y": xy[1].astype(float)}
                     for xy in face.kps
                 ],
                 "landmarks": {
@@ -85,20 +72,13 @@ async def get_detection_by_object_id(object_id: str):
                         for xyz in face.landmark_3d_68
                     ],
                     "2d_106": [
-                        {
-                            "x": xy[0].astype(float),
-                            "y": xy[1].astype(float),
-                        }
+                        {"x": xy[0].astype(float), "y": xy[1].astype(float)}
                         for xy in face.landmark_2d_106
                     ],
                 },
-                "attributes": {
-                    "sex": face.sex,
-                    "age": face.age,
-                },
-                # face.embedding
+                "attributes": {"sex": face.sex, "age": face.age},
+                # TODO: face.embedding
             }
             for face in faces
         ],
     }
-"""

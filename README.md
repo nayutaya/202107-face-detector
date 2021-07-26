@@ -9,7 +9,6 @@ docker-compose build
 docker-compose up -d
 
 curl -X POST \
-  --header "Accept: application/json" \
   --header "Content-Type: multipart/form-data" \
   --form "file=@43730.jpg;type=image/jpeg" \
   http://localhost:8000/detect

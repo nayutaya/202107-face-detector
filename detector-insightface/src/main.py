@@ -4,11 +4,16 @@ import fastapi
 import fastapi.middleware.cors
 import insightface
 import numpy as np
+import onnxruntime
 import PIL.Image
 
 SERVICE = {
     "name": "detector-insightface",
     "version": "0.1.0",
+    "libraries": {
+        "insightface": insightface.__version__,
+        "onnxruntime": onnxruntime.__version__,
+    },
 }
 
 app = fastapi.FastAPI()
@@ -19,8 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-face_analysis = insightface.app.FaceAnalysis()
-face_analysis.prepare(ctx_id=0, det_size=(640, 640))
+# face_analysis = insightface.app.FaceAnalysis()
+# face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 
 
 @app.get("/")
@@ -28,6 +33,13 @@ async def get_root():
     return {
         "service": SERVICE,
         "time": int(datetime.datetime.now().timestamp() * 1000),
+    }
+
+@app.post("/detect")
+async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
+    return {
+        "fileName": file.filename,
+        "contentType": file.content_type,
     }
 
 

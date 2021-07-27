@@ -159,10 +159,14 @@ function Faces({ faces, shows }) {
   );
 }
 
-function CheckBox({ id, label, checked, onChange }) {
+function CheckBox({ id, label, shows, setShows }) {
   return (
     <>
-      <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <input id={id} type="checkbox" checked={shows[id]} onChange={(e) => {
+        const copied = {...shows}
+        copied[id] = e.target.checked;
+        setShows(copied);
+      }} />
       <label for={id}>{label}</label>
     </>
   );
@@ -181,12 +185,12 @@ function OverlayImage({ image, result }) {
   return (
     <>
       <div>
-        <CheckBox id="boundingBox" label="Bounding Box" checked={shows.boundingBox} onChange={(v) => setShows({...shows, boundingBox: v})} />
-        <CheckBox id="score" label="Score" checked={shows.score} onChange={(v) => setShows({...shows, score: v})} />
-        <CheckBox id="attributes" label="Attributes" checked={shows.attributes} onChange={(v) => setShows({...shows, attributes: v})} />
-        <CheckBox id="keyPoints" label="Key Points" checked={shows.keyPoints} onChange={(v) => setShows({...shows, keyPoints: v})} />
-        <CheckBox id="landmarks2d106" label="Landmarks (2D 106)" checked={shows.landmarks2d106} onChange={(v) => setShows({...shows, landmarks2d106: v})} />
-        <CheckBox id="landmarks3d68" label="Landmarks (3D 68)" checked={shows.landmarks3d68} onChange={(v) => setShows({...shows, landmarks3d68: v})} />
+        <CheckBox id="boundingBox" label="Bounding Box" shows={shows} setShows={setShows} />
+        <CheckBox id="score" label="Score" shows={shows} setShows={setShows} />
+        <CheckBox id="attributes" label="Attributes" shows={shows} setShows={setShows} />
+        <CheckBox id="keyPoints" label="Key Points" shows={shows} setShows={setShows} />
+        <CheckBox id="landmarks2d106" label="Landmarks (2D 106)" shows={shows} setShows={setShows} />
+        <CheckBox id="landmarks3d68" label="Landmarks (3D 68)" shows={shows} setShows={setShows} />
       </div>
       <svg
           xmlns="http://www.w3.org/2000/svg"

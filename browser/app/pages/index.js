@@ -2,7 +2,7 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
-function BoundingBox({ face, color }) {
+function BoundingBox({ face, color, size = 20, strokeOpacity = 0.7, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   if ( false ) {
     return (
@@ -15,21 +15,20 @@ function BoundingBox({ face, color }) {
           fill="none" />
     );
   } else {
-    const size = 20;
     return (
-      <g>
-        <path
-            d={
-              `M${x1},${y1 + size} L${x1},${y1}  L${x1 + size},${y1}`
-              + ` M${x2},${y1 + size} L${x2},${y1}  L${x2 - size},${y1}`
-              + ` M${x1},${y2 - size} L${x1},${y2}  L${x1 + size},${y2}`
-              + ` M${x2},${y2 - size} L${x2},${y2}  L${x2 - size},${y2}`
-            }
-            stroke={color}
-            strokeOpacity={0.7}
-            strokeWidth={2}
-            fill="none" />
-      </g>
+      <path
+          d={
+            `M${x1},${y1 + size} L${x1},${y1}  L${x1 + size},${y1}`
+            + ` M${x2},${y1 + size} L${x2},${y1}  L${x2 - size},${y1}`
+            + ` M${x1},${y2 - size} L${x1},${y2}  L${x1 + size},${y2}`
+            + ` M${x2},${y2 - size} L${x2},${y2}  L${x2 - size},${y2}`
+          }
+          stroke={color}
+          strokeOpacity={strokeOpacity}
+          strokeWidth={strokeWidth}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          fill="none" />
     );
   }
 }
@@ -75,7 +74,7 @@ function KeyPoints({ points, color, radius = 2 }) {
   );
 }
 
-function Attributes({ face, color, fontSize = 16 }) {
+function Attributes({ face, color, fontSize = 16, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   const x = x1;
   const y = y1 - 6;
@@ -87,7 +86,7 @@ function Attributes({ face, color, fontSize = 16 }) {
           y={y}
           fontSize={fontSize}
           stroke="white"
-          strokeWidth={3}
+          strokeWidth={strokeWidth}
           fill="none">
         {label}
       </text>
@@ -103,8 +102,7 @@ function Attributes({ face, color, fontSize = 16 }) {
   );
 }
 
-function Face({ face, showsBoundingBox = true, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
-  const color = {M: "#6666CC", F: "#CC6666"}[face.attributes.sex];
+function Face({ face, color, showsBoundingBox = true, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
   return (
     <g>
       {!showsBoundingBox ? null :
@@ -142,10 +140,14 @@ function Face({ face, showsBoundingBox = true, showsScore = true, showsLandmarks
 }
 
 function Faces({ faces }) {
+  const colors = {M: "#6666CC", F: "#CC6666"};
   return (
     <g>
-      {faces.map((face) => (
-        <Face face={face} />
+      {faces.map((face, index) => (
+        <Face
+            key={index}
+            face={face}
+            color={colors[face.attributes.sex]}/>
       ))}
     </g>
   );
@@ -154,28 +156,27 @@ function Faces({ faces }) {
 function Result({ image, result }) {
   const response = result.response;
   return (
-    <div>
-      <svg
-          xmlns="http://www.w3.org/2000/svg"
-          version="1.1"
-          viewBox={`0 0 ${response.width} ${response.height}`}>
-        <image
-            x={0}
-            y={0}
-            width={response.width}
-            height={response.height}
-            href={image.dataUrl} />
-        <Faces faces={response.faces} />
-      </svg>
-    </div>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewBox={`0 0 ${response.width} ${response.height}`}
+        width={response.width}
+        height={response.height}>
+      <image
+          x={0}
+          y={0}
+          width={response.width}
+          height={response.height}
+          href={image.dataUrl} />
+      <Faces
+          faces={response.faces} />
+    </svg>
   );
 }
 
 export default function Page() {
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
-
-  // TODO: 結果を可視化する処理を実装する。
 
   const handleFile = (acceptedFiles) => {
     if ( acceptedFiles.length < 0 ) return;
@@ -237,7 +238,9 @@ export default function Page() {
         )}
       </Dropzone>
       {image === null || result === null ? null :
-        <Result image={image} result={result} />
+        <Result
+            image={image}
+            result={result} />
       }
     </div>
   );

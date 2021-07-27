@@ -159,16 +159,21 @@ function Faces({ faces, shows }) {
   );
 }
 
-function CheckBox({ id, label, shows, setShows }) {
+function CheckBox({ id, checked, setChecked, children }) {
   return (
-    <>
-      <input id={id} type="checkbox" checked={shows[id]} onChange={(e) => {
-        const copied = {...shows}
-        copied[id] = e.target.checked;
-        setShows(copied);
-      }} />
-      <label for={id}>{label}</label>
-    </>
+    <label>
+      <input
+          type="checkbox"
+          checked={checked[id]}
+          onChange={(e) => {
+            const copied = {...checked};
+            copied[id] = e.target.checked;
+            setChecked(copied);
+          }} />
+      <span style={{cursor: "pointer"}}>
+        {children}
+      </span>
+    </label>
   );
 }
 
@@ -185,12 +190,14 @@ function OverlayImage({ image, result }) {
   return (
     <>
       <div>
-        <CheckBox id="boundingBox" label="Bounding Box" shows={shows} setShows={setShows} />
-        <CheckBox id="score" label="Score" shows={shows} setShows={setShows} />
-        <CheckBox id="attributes" label="Attributes" shows={shows} setShows={setShows} />
-        <CheckBox id="keyPoints" label="Key Points" shows={shows} setShows={setShows} />
-        <CheckBox id="landmarks2d106" label="Landmarks (2D 106)" shows={shows} setShows={setShows} />
-        <CheckBox id="landmarks3d68" label="Landmarks (3D 68)" shows={shows} setShows={setShows} />
+        [&nbsp;
+        <CheckBox id="boundingBox" checked={shows} setChecked={setShows}>Bounding Box</CheckBox> |
+        <CheckBox id="score" checked={shows} setChecked={setShows}>Score</CheckBox> |
+        <CheckBox id="attributes" checked={shows} setChecked={setShows}>Attributes</CheckBox> |
+        <CheckBox id="keyPoints" checked={shows} setChecked={setShows}><span style={{color: "#009900"}}>●</span>Key Points</CheckBox> |
+        <CheckBox id="landmarks2d106" checked={shows} setChecked={setShows}><span style={{color: "#CC0000"}}>●</span>Landmarks (2D 106)</CheckBox> |
+        <CheckBox id="landmarks3d68" checked={shows} setChecked={setShows}><span style={{color: "#0000CC"}}>●</span>Landmarks (3D 68)</CheckBox>
+        &nbsp;]
       </div>
       <svg
           xmlns="http://www.w3.org/2000/svg"

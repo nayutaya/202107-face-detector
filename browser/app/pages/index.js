@@ -2,7 +2,7 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
-function BoundingBox({ face, color, size = 20, strokeOpacity = 0.7, strokeWidth = 3 }) {
+function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   if ( false ) {
     return (
@@ -15,13 +15,15 @@ function BoundingBox({ face, color, size = 20, strokeOpacity = 0.7, strokeWidth 
           fill="none" />
     );
   } else {
+    const dx = (x2 - x1) * size;
+    const dy = (y2 - y1) * size;
     return (
       <path
           d={
-            `M${x1},${y1 + size} L${x1},${y1}  L${x1 + size},${y1}`
-            + ` M${x2},${y1 + size} L${x2},${y1}  L${x2 - size},${y1}`
-            + ` M${x1},${y2 - size} L${x1},${y2}  L${x1 + size},${y2}`
-            + ` M${x2},${y2 - size} L${x2},${y2}  L${x2 - size},${y2}`
+            `M${x1},${y1 + dy} L${x1},${y1}  L${x1 + dx},${y1}`
+            + ` M${x2},${y1 + dy} L${x2},${y1}  L${x2 - dx},${y1}`
+            + ` M${x1},${y2 - dy} L${x1},${y2}  L${x1 + dx},${y2}`
+            + ` M${x2},${y2 - dy} L${x2},${y2}  L${x2 - dx},${y2}`
           }
           stroke={color}
           strokeOpacity={strokeOpacity}
@@ -58,7 +60,7 @@ function ScoreBar({ face, color, height = 4, padding = 3, strokeWidth = 1, strok
   );
 }
 
-function KeyPoints({ points, color, radius = 2 }) {
+function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
   return (
     <g>
       {points.map((p, index) => (
@@ -68,13 +70,14 @@ function KeyPoints({ points, color, radius = 2 }) {
             cy={p.y}
             r={radius}
             stroke="none"
-            fill={color} />
+            fill={color}
+            fillOpacity={fillOpacity} />
       ))}
     </g>
   );
 }
 
-function Attributes({ face, color, fontSize = 16, strokeWidth = 3 }) {
+function Attributes({ face, color, fontSize = 16, opacity = 0.8, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   const x = x1;
   const y = y1 - 6;
@@ -87,6 +90,7 @@ function Attributes({ face, color, fontSize = 16, strokeWidth = 3 }) {
           fontSize={fontSize}
           stroke="white"
           strokeWidth={strokeWidth}
+          strokeOpacity={opacity}
           fill="none">
         {label}
       </text>
@@ -95,7 +99,8 @@ function Attributes({ face, color, fontSize = 16, strokeWidth = 3 }) {
           y={y}
           fontSize={fontSize}
           stroke="none"
-          fill={color}>
+          fill={color}
+          fillOpacity={opacity} >
         {label}
       </text>
     </g>
@@ -118,17 +123,17 @@ function Face({ face, color, showsBoundingBox = true, showsScore = true, showsLa
       {!showsLandmarks2d106 ? null :
         <KeyPoints
             points={face.landmarks["2d_106"]}
-            color={"red"} />
+            color={"#CC0000"} />
       }
       {!showsLandmarks3d68 ? null :
         <KeyPoints
             points={face.landmarks["3d_68"]}
-            color={"blue"} />
+            color={"#0000CC"} />
       }
       {!showsKeyPoints ? null :
         <KeyPoints
             points={face.keyPoints}
-            color={"green"} />
+            color={"#009900"} />
       }
       {!showsAttributes ? null :
         <Attributes

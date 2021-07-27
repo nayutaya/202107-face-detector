@@ -158,7 +158,7 @@ function Faces({ faces }) {
   );
 }
 
-function Result({ image, result }) {
+function OverlayImage({ image, result }) {
   const response = result.response;
   return (
     <svg
@@ -177,6 +177,80 @@ function Result({ image, result }) {
           faces={response.faces} />
     </svg>
   );
+}
+
+function FaceImage({ width, height, dataUrl, face }) {
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  return (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewBox={`${x1} ${y1} ${x2 - x1} ${y2 - y1}`}
+        width={200}
+        height={200}>
+      <image
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          href={dataUrl} />
+    </svg>
+  );
+}
+
+function ResultTable({ image, result }) {
+  const response = result.response;
+  return (
+    <table border="1">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Image</th>
+          <th>Score</th>
+          <th>Sex</th>
+          <th>Age</th>
+          <th>x1</th>
+          <th>y1</th>
+          <th>x2</th>
+          <th>y2</th>
+        </tr>
+      </thead>
+      <tbody>
+        {response.faces.map((face, index) => (
+          <tr key={index}>
+            <td>{index + 1}</td>
+            <td>
+              <FaceImage
+                width={response.width}
+                height={response.height}
+                dataUrl={image.dataUrl}
+                face={face} />
+            </td>
+            <td>{face.score}</td>
+            <td>{face.attributes.sex}</td>
+            <td>{face.attributes.age}</td>
+            <td>{face.boundingBox.x1}</td>
+            <td>{face.boundingBox.y1}</td>
+            <td>{face.boundingBox.x2}</td>
+            <td>{face.boundingBox.y2}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+function Result({ image, result }) {
+  return (
+    <>
+      <OverlayImage
+          image={image}
+          result={result} />
+      <ResultTable
+          image={image}
+          result={result} />
+    </>
+  )
 }
 
 export default function Page() {

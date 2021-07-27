@@ -2,6 +2,21 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
+function BoundingBox({ face, color }) {
+  const bbox = face.boundingBox;
+  const width = bbox.x2 - bbox.x1;
+  const height = bbox.y2 - bbox.y1;
+  return (
+    <rect
+        x={bbox.x1}
+        y={bbox.y1}
+        width={width}
+        height={height}
+        stroke={color}
+        fill="none" />
+  );
+}
+
 function ScoreBar({ face, color }) {
   const bbox = face.boundingBox;
   const width = bbox.x2 - bbox.x1;
@@ -16,22 +31,54 @@ function ScoreBar({ face, color }) {
   );
 }
 
-function Face({ face, isScoreVisible = true }) {
-  const bbox = face.boundingBox;
-  const width = bbox.x2 - bbox.x1;
-  const height = bbox.y2 - bbox.y1;
+function Landmarks({ points, color }) {
+  return (
+    <g>
+      {points.map((p, index) => (
+        <circle
+            key={index}
+            cx={p.x}
+            cy={p.y}
+            r={2}
+            stroke="none"
+            fill={color} />
+      ))}
+    </g>
+  );
+}
+
+function KeyPoints({ keyPoints, fill }) {
+  return (
+    <g>
+      {keyPoints.map((p, index) => (
+        <circle
+            key={index}
+            cx={p.x}
+            cy={p.y}
+            r={2}
+            stroke="none"
+            fill={fill} />
+      ))}
+    </g>
+  );
+}
+
+function Face({ face, isScoreVisible = true, islandmarks2d106Visible = true, islandmarks3d68Visible = true, showsKeyPoints = true }) {
   const color = {M: "#6666CC", F: "#CC6666"}[face.attributes.sex];
   return (
     <g>
-      <rect
-          x={bbox.x1}
-          y={bbox.y1}
-          width={width}
-          height={height}
-          stroke={color}
-          fill="none" />
+      <BoundingBox face={face} color={color} />
       {!isScoreVisible ? null :
         <ScoreBar face={face} color={color} />
+      }
+      {!islandmarks2d106Visible ? null :
+        <Landmarks points={face.landmarks["2d_106"]} color={"red"}/>
+      }
+      {!islandmarks3d68Visible ? null :
+        <Landmarks points={face.landmarks["3d_68"]} color={"blue"}/>
+      }
+      {!showsKeyPoints ? null :
+        <KeyPoints keyPoints={face.keyPoints} fill={"green"} />
       }
     </g>
   );

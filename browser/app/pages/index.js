@@ -17,20 +17,32 @@ function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth
   } else {
     const dx = (x2 - x1) * size;
     const dy = (y2 - y1) * size;
+    const sw = strokeWidth;
     return (
-      <path
-          d={
-            `M${x1},${y1 + dy} L${x1},${y1}  L${x1 + dx},${y1}`
-            + ` M${x2},${y1 + dy} L${x2},${y1}  L${x2 - dx},${y1}`
-            + ` M${x1},${y2 - dy} L${x1},${y2}  L${x1 + dx},${y2}`
-            + ` M${x2},${y2 - dy} L${x2},${y2}  L${x2 - dx},${y2}`
-          }
-          stroke={color}
-          strokeOpacity={strokeOpacity}
-          strokeWidth={strokeWidth}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          fill="none" />
+      <g>
+        <path
+            d={
+              `M${x1 - sw},${y1 + dy} L${x1 - sw},${y1 - sw}  L${x1 + dx},${y1 - sw}`
+              + ` M${x2 + sw},${y1 + dy} L${x2 + sw},${y1 - sw}  L${x2 - dx},${y1 - sw}`
+              + ` M${x1 - sw},${y2 - dy} L${x1 - sw},${y2 + sw}  L${x1 + dx},${y2 + sw}`
+              + ` M${x2 + sw},${y2 - dy} L${x2 + sw},${y2 + sw}  L${x2 - dx},${y2 + sw}`
+            }
+            stroke="white"
+            strokeOpacity={strokeOpacity}
+            strokeWidth={strokeWidth}
+            fill="none" />
+        <path
+            d={
+              `M${x1},${y1 + dy} L${x1},${y1}  L${x1 + dx},${y1}`
+              + ` M${x2},${y1 + dy} L${x2},${y1}  L${x2 - dx},${y1}`
+              + ` M${x1},${y2 - dy} L${x1},${y2}  L${x1 + dx},${y2}`
+              + ` M${x2},${y2 - dy} L${x2},${y2}  L${x2 - dx},${y2}`
+            }
+            stroke={color}
+            strokeOpacity={strokeOpacity}
+            strokeWidth={strokeWidth}
+            fill="none" />
+      </g>
     );
   }
 }
@@ -77,10 +89,10 @@ function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
   );
 }
 
-function Attributes({ face, color, fontSize = 16, opacity = 0.8, strokeWidth = 3 }) {
+function Attributes({ face, color, fontSize = 16, opacity = 1.0, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   const x = x1;
-  const y = y1 - 6;
+  const y = y1 - 7;
   const label = `Sex: ${face.attributes.sex} / Age: ${face.attributes.age}`;
   return (
     <g>
@@ -195,8 +207,8 @@ function OverlayImage({ image, result }) {
         <CheckBox id="score" checked={shows} setChecked={setShows}>Score</CheckBox> |
         <CheckBox id="attributes" checked={shows} setChecked={setShows}>Attributes</CheckBox> |
         <CheckBox id="keyPoints" checked={shows} setChecked={setShows}><span style={{color: "#009900"}}>●</span>Key Points</CheckBox> |
-        <CheckBox id="landmarks2d106" checked={shows} setChecked={setShows}><span style={{color: "#CC0000"}}>●</span>Landmarks (2D 106)</CheckBox> |
-        <CheckBox id="landmarks3d68" checked={shows} setChecked={setShows}><span style={{color: "#0000CC"}}>●</span>Landmarks (3D 68)</CheckBox>
+        <CheckBox id="landmarks2d106" checked={shows} setChecked={setShows}><span style={{color: "#CC0000"}}>●</span>Landmarks 2D 106</CheckBox> |
+        <CheckBox id="landmarks3d68" checked={shows} setChecked={setShows}><span style={{color: "#0000CC"}}>●</span>Landmarks 3D 68</CheckBox>
         &nbsp;]
       </div>
       <svg

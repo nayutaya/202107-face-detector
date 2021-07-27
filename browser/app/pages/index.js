@@ -227,26 +227,39 @@ export default function Page() {
         <title>face-detector</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <h1>入力</h1>
+      <p>JPEG形式の画像ファイルを枠内にドラッグ＆ドロップするか、枠内をクリックして画像ファイルを選択してください。</p>
       <Dropzone onDrop={handleFile}>
         {({getRootProps, getInputProps}) => (
           <div
               style={{
-                width: "400px",
-                height: "300px",
-                border: "1px dotted black",
-                ...backgroundStyle
+                border: "2px dotted black",
+                padding: "5px",
               }}
               {...getRootProps()}>
-            <input {...getInputProps()} />
-            <p>JPEG形式の画像ファイルをここにドラッグ＆ドロップするか、クリックして画像ファイルを選択してください</p>
+            <div
+                style={{
+                  width: "400px",
+                  height: "300px",
+                  ...backgroundStyle
+                }}>
+              <input {...getInputProps()} />
+            </div>
           </div>
         )}
       </Dropzone>
-      {image === null || result === null ? null :
-        <Result
-            image={image}
-            result={result} />
-      }
+      {image === null ? null : (
+        <>
+          <h1>認識結果</h1>
+          {result === null ? (
+            <p>解析中...</p>
+          ) : (
+            <Result
+                image={image}
+                result={result} />
+          )}
+        </>
+      )}
     </div>
   );
 }

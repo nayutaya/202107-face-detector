@@ -3,35 +3,63 @@ import Head from "next/head";
 import { useState } from "react";
 
 function BoundingBox({ face, color }) {
-  const bbox = face.boundingBox;
-  const width = bbox.x2 - bbox.x1;
-  const height = bbox.y2 - bbox.y1;
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  if ( false ) {
+    return (
+      <rect
+          x={x1}
+          y={y1}
+          width={x2 - x1}
+          height={y2 - y1}
+          stroke={color}
+          fill="none" />
+    );
+  } else {
+    const size = 20;
+    return (
+      <g>
+        <path
+            d={
+              `M${x1},${y1 + size} L${x1},${y1}  L${x1 + size},${y1}`
+              + ` M${x2},${y1 + size} L${x2},${y1}  L${x2 - size},${y1}`
+              + ` M${x1},${y2 - size} L${x1},${y2}  L${x1 + size},${y2}`
+              + ` M${x2},${y2 - size} L${x2},${y2}  L${x2 - size},${y2}`
+            }
+            stroke={color}
+            strokeOpacity={0.7}
+            strokeWidth={2}
+            fill="none" />
+      </g>
+    );
+  }
+}
+
+function ScoreBar({ face, color, height = 4, padding = 3, strokeWidth = 1, strokeOpacity = 0.7, fillOpacity = 0.7 }) {
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  const width = x2 - x1;
   return (
-    <rect
-        x={bbox.x1}
-        y={bbox.y1}
-        width={width}
-        height={height}
-        stroke={color}
-        fill="none" />
+    <g>
+      <rect
+          x={x1 + padding}
+          y={y1 + padding}
+          width={width - padding * 2}
+          height={height}
+          stroke="white"
+          strokeWidth={strokeWidth}
+          strokeOpacity={strokeOpacity}
+          fill="none" />
+      <rect
+          x={x1 + padding}
+          y={y1 + padding}
+          width={(width - padding * 2) * face.score}
+          height={height}
+          fill={color}
+          fillOpacity={fillOpacity} />
+    </g>
   );
 }
 
-function ScoreBar({ face, color }) {
-  const bbox = face.boundingBox;
-  const width = bbox.x2 - bbox.x1;
-  return (
-    <rect
-        x={bbox.x1}
-        y={bbox.y1}
-        width={width * face.score}
-        height={3}
-        stroke="none"
-        fill={color} />
-  );
-}
-
-function Landmarks({ points, color }) {
+function KeyPoints({ points, color, radius = 2 }) {
   return (
     <g>
       {points.map((p, index) => (
@@ -39,7 +67,7 @@ function Landmarks({ points, color }) {
             key={index}
             cx={p.x}
             cy={p.y}
-            r={2}
+            r={radius}
             stroke="none"
             fill={color} />
       ))}
@@ -47,27 +75,10 @@ function Landmarks({ points, color }) {
   );
 }
 
-function KeyPoints({ keyPoints, color }) {
-  return (
-    <g>
-      {keyPoints.map((p, index) => (
-        <circle
-            key={index}
-            cx={p.x}
-            cy={p.y}
-            r={2}
-            stroke="none"
-            fill={color} />
-      ))}
-    </g>
-  );
-}
-
-function Attributes({ face, color }) {
-  const bbox = face.boundingBox;
-  const x = bbox.x1 + 2
-  const y = bbox.y1 - 8;
-  const fontSize = 16;
+function Attributes({ face, color, fontSize = 16 }) {
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  const x = x1;
+  const y = y1 - 6;
   const label = `Sex: ${face.attributes.sex} / Age: ${face.attributes.age}`;
   return (
     <g>
@@ -75,13 +86,16 @@ function Attributes({ face, color }) {
           x={x}
           y={y}
           fontSize={fontSize}
-          stroke="white" strokeWidth={3}>
+          stroke="white"
+          strokeWidth={3}
+          fill="none">
         {label}
       </text>
       <text
           x={x}
           y={y}
           fontSize={fontSize}
+          stroke="none"
           fill={color}>
         {label}
       </text>
@@ -89,25 +103,39 @@ function Attributes({ face, color }) {
   );
 }
 
-function Face({ face, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
+function Face({ face, showsBoundingBox = true, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
   const color = {M: "#6666CC", F: "#CC6666"}[face.attributes.sex];
   return (
     <g>
-      <BoundingBox face={face} color={color} />
+      {!showsBoundingBox ? null :
+        <BoundingBox
+            face={face}
+            color={color} />
+      }
       {!showsScore ? null :
-        <ScoreBar face={face} color={color} />
+        <ScoreBar
+            face={face}
+            color={color} />
       }
       {!showsLandmarks2d106 ? null :
-        <Landmarks points={face.landmarks["2d_106"]} color={"red"}/>
+        <KeyPoints
+            points={face.landmarks["2d_106"]}
+            color={"red"} />
       }
       {!showsLandmarks3d68 ? null :
-        <Landmarks points={face.landmarks["3d_68"]} color={"blue"}/>
+        <KeyPoints
+            points={face.landmarks["3d_68"]}
+            color={"blue"} />
       }
       {!showsKeyPoints ? null :
-        <KeyPoints keyPoints={face.keyPoints} color={"green"} />
+        <KeyPoints
+            points={face.keyPoints}
+            color={"green"} />
       }
       {!showsAttributes ? null :
-        <Attributes face={face} color={color} />
+        <Attributes
+            face={face}
+            color={color} />
       }
     </g>
   );

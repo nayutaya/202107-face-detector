@@ -2,7 +2,7 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
-function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth = 3 }) {
+function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth = 3, border = 2 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   if ( false ) {
     return (
@@ -17,19 +17,29 @@ function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth
   } else {
     const dx = (x2 - x1) * size;
     const dy = (y2 - y1) * size;
-    const sw = strokeWidth;
     return (
       <g>
         <path
             d={
-              `M${x1 - sw},${y1 + dy} L${x1 - sw},${y1 - sw}  L${x1 + dx},${y1 - sw}`
-              + ` M${x2 + sw},${y1 + dy} L${x2 + sw},${y1 - sw}  L${x2 - dx},${y1 - sw}`
-              + ` M${x1 - sw},${y2 - dy} L${x1 - sw},${y2 + sw}  L${x1 + dx},${y2 + sw}`
-              + ` M${x2 + sw},${y2 - dy} L${x2 + sw},${y2 + sw}  L${x2 - dx},${y2 + sw}`
+              `M${x1 - border},${y1 + dy} L${x1 - border},${y1 - border}  L${x1 + dx},${y1 - border}`
+              + ` M${x2 + border},${y1 + dy} L${x2 + border},${y1 - border}  L${x2 - dx},${y1 - border}`
+              + ` M${x1 - border},${y2 - dy} L${x1 - border},${y2 + border}  L${x1 + dx},${y2 + border}`
+              + ` M${x2 + border},${y2 - dy} L${x2 + border},${y2 + border}  L${x2 - dx},${y2 + border}`
             }
             stroke="white"
             strokeOpacity={strokeOpacity}
-            strokeWidth={strokeWidth}
+            strokeWidth={border}
+            fill="none" />
+        <path
+            d={
+              `M${x1 + border},${y1 + dy} L${x1 + border},${y1 + border}  L${x1 + dx},${y1 + border}`
+              + ` M${x2 - border},${y1 + dy} L${x2 - border},${y1 + border}  L${x2 - dx},${y1 + border}`
+              + ` M${x1 + border},${y2 - dy} L${x1 + border},${y2 - border}  L${x1 + dx},${y2 - border}`
+              + ` M${x2 - border},${y2 - dy} L${x2 - border},${y2 - border}  L${x2 - dx},${y2 - border}`
+            }
+            stroke="white"
+            strokeOpacity={strokeOpacity}
+            strokeWidth={border}
             fill="none" />
         <path
             d={
@@ -89,7 +99,7 @@ function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
   );
 }
 
-function Attributes({ face, color, fontSize = 16, opacity = 1.0, strokeWidth = 3 }) {
+function Attributes({ face, color, fontSize = 16, opacity = 0.9, strokeWidth = 3 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   const x = x1;
   const y = y1 - 7;

@@ -204,21 +204,27 @@ function ResultTable({ image, result }) {
     <table border="1">
       <thead>
         <tr>
-          <th>No</th>
-          <th>Image</th>
-          <th>Score</th>
+          <th rowSpan="2">No</th>
+          <th rowSpan="2">Image</th>
+          <th rowSpan="2">Score</th>
+          <th colSpan="2">Attributes</th>
+          <th colSpan="6">Bounding Box</th>
+        </tr>
+        <tr>
           <th>Sex</th>
           <th>Age</th>
           <th>x1</th>
           <th>y1</th>
           <th>x2</th>
           <th>y2</th>
+          <th>w</th>
+          <th>h</th>
         </tr>
       </thead>
       <tbody>
         {response.faces.map((face, index) => (
           <tr key={index}>
-            <td>{index + 1}</td>
+            <td className="num">{index + 1}</td>
             <td>
               <FaceImage
                 width={response.width}
@@ -226,13 +232,15 @@ function ResultTable({ image, result }) {
                 dataUrl={image.dataUrl}
                 face={face} />
             </td>
-            <td>{face.score}</td>
+            <td>{face.score.toFixed(3)}</td>
             <td>{face.attributes.sex}</td>
-            <td>{face.attributes.age}</td>
-            <td>{face.boundingBox.x1}</td>
-            <td>{face.boundingBox.y1}</td>
-            <td>{face.boundingBox.x2}</td>
-            <td>{face.boundingBox.y2}</td>
+            <td className="num">{face.attributes.age}</td>
+            <td className="num">{face.boundingBox.x1.toFixed(2)}</td>
+            <td className="num">{face.boundingBox.y1.toFixed(2)}</td>
+            <td className="num">{face.boundingBox.x2.toFixed(2)}</td>
+            <td className="num">{face.boundingBox.y2.toFixed(2)}</td>
+            <td className="num">{(face.boundingBox.x2 - face.boundingBox.x1).toFixed(2)}</td>
+            <td className="num">{(face.boundingBox.y2 - face.boundingBox.y1).toFixed(2)}</td>
           </tr>
         ))}
       </tbody>

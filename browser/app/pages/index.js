@@ -23,7 +23,7 @@ function ScoreBar({ face, color }) {
   return (
     <rect
         x={bbox.x1}
-        y={bbox.y1 - 3}
+        y={bbox.y1}
         width={width * face.score}
         height={3}
         stroke="none"
@@ -47,7 +47,7 @@ function Landmarks({ points, color }) {
   );
 }
 
-function KeyPoints({ keyPoints, fill }) {
+function KeyPoints({ keyPoints, color }) {
   return (
     <g>
       {keyPoints.map((p, index) => (
@@ -57,28 +57,57 @@ function KeyPoints({ keyPoints, fill }) {
             cy={p.y}
             r={2}
             stroke="none"
-            fill={fill} />
+            fill={color} />
       ))}
     </g>
   );
 }
 
-function Face({ face, isScoreVisible = true, islandmarks2d106Visible = true, islandmarks3d68Visible = true, showsKeyPoints = true }) {
+function Attributes({ face, color }) {
+  const bbox = face.boundingBox;
+  const x = bbox.x1 + 2
+  const y = bbox.y1 - 8;
+  const fontSize = 16;
+  const label = `Sex: ${face.attributes.sex} / Age: ${face.attributes.age}`;
+  return (
+    <g>
+      <text
+          x={x}
+          y={y}
+          fontSize={fontSize}
+          stroke="white" strokeWidth={3}>
+        {label}
+      </text>
+      <text
+          x={x}
+          y={y}
+          fontSize={fontSize}
+          fill={color}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function Face({ face, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
   const color = {M: "#6666CC", F: "#CC6666"}[face.attributes.sex];
   return (
     <g>
       <BoundingBox face={face} color={color} />
-      {!isScoreVisible ? null :
+      {!showsScore ? null :
         <ScoreBar face={face} color={color} />
       }
-      {!islandmarks2d106Visible ? null :
+      {!showsLandmarks2d106 ? null :
         <Landmarks points={face.landmarks["2d_106"]} color={"red"}/>
       }
-      {!islandmarks3d68Visible ? null :
+      {!showsLandmarks3d68 ? null :
         <Landmarks points={face.landmarks["3d_68"]} color={"blue"}/>
       }
       {!showsKeyPoints ? null :
-        <KeyPoints keyPoints={face.keyPoints} fill={"green"} />
+        <KeyPoints keyPoints={face.keyPoints} color={"green"} />
+      }
+      {!showsAttributes ? null :
+        <Attributes face={face} color={color} />
       }
     </g>
   );

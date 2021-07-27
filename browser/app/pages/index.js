@@ -107,35 +107,35 @@ function Attributes({ face, color, fontSize = 16, opacity = 0.8, strokeWidth = 3
   );
 }
 
-function Face({ face, color, showsBoundingBox = true, showsScore = true, showsLandmarks2d106 = true, showsLandmarks3d68 = true, showsKeyPoints = true, showsAttributes = true }) {
+function Face({ face, color, shows }) {
   return (
     <g>
-      {!showsBoundingBox ? null :
+      {!shows.boundingBox ? null :
         <BoundingBox
             face={face}
             color={color} />
       }
-      {!showsScore ? null :
+      {!shows.score ? null :
         <ScoreBar
             face={face}
             color={color} />
       }
-      {!showsLandmarks2d106 ? null :
+      {!shows.landmarks2d106 ? null :
         <KeyPoints
             points={face.landmarks["2d_106"]}
             color={"#CC0000"} />
       }
-      {!showsLandmarks3d68 ? null :
+      {!shows.landmarks3d68 ? null :
         <KeyPoints
             points={face.landmarks["3d_68"]}
             color={"#0000CC"} />
       }
-      {!showsKeyPoints ? null :
+      {!shows.keyPoints ? null :
         <KeyPoints
             points={face.keyPoints}
             color={"#009900"} />
       }
-      {!showsAttributes ? null :
+      {!shows.attributes ? null :
         <Attributes
             face={face}
             color={color} />
@@ -144,7 +144,7 @@ function Face({ face, color, showsBoundingBox = true, showsScore = true, showsLa
   );
 }
 
-function Faces({ faces }) {
+function Faces({ faces, shows }) {
   const colors = {M: "#6666CC", F: "#CC6666"};
   return (
     <g>
@@ -152,30 +152,59 @@ function Faces({ faces }) {
         <Face
             key={index}
             face={face}
-            color={colors[face.attributes.sex]}/>
+            color={colors[face.attributes.sex]}
+            shows={shows} />
       ))}
     </g>
   );
 }
 
+function CheckBox({ id, label, checked, onChange }) {
+  return (
+    <>
+      <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <label for={id}>{label}</label>
+    </>
+  );
+}
+
 function OverlayImage({ image, result }) {
+  const [shows, setShows] = useState({
+    boundingBox: true,
+    attributes: true,
+    score: true,
+    keyPoints: true,
+    landmarks2d106: true,
+    landmarks3d68: true,
+  });
   const response = result.response;
   return (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        version="1.1"
-        viewBox={`0 0 ${response.width} ${response.height}`}
-        width={response.width}
-        height={response.height}>
-      <image
-          x={0}
-          y={0}
+    <>
+      <div>
+        <CheckBox id="boundingBox" label="Bounding Box" checked={shows.boundingBox} onChange={(v) => setShows({...shows, boundingBox: v})} />
+        <CheckBox id="score" label="Score" checked={shows.score} onChange={(v) => setShows({...shows, score: v})} />
+        <CheckBox id="attributes" label="Attributes" checked={shows.attributes} onChange={(v) => setShows({...shows, attributes: v})} />
+        <CheckBox id="keyPoints" label="Key Points" checked={shows.keyPoints} onChange={(v) => setShows({...shows, keyPoints: v})} />
+        <CheckBox id="landmarks2d106" label="Landmarks (2D 106)" checked={shows.landmarks2d106} onChange={(v) => setShows({...shows, landmarks2d106: v})} />
+        <CheckBox id="landmarks3d68" label="Landmarks (3D 68)" checked={shows.landmarks3d68} onChange={(v) => setShows({...shows, landmarks3d68: v})} />
+      </div>
+      <svg
+          xmlns="http://www.w3.org/2000/svg"
+          version="1.1"
+          viewBox={`0 0 ${response.width} ${response.height}`}
           width={response.width}
-          height={response.height}
-          href={image.dataUrl} />
-      <Faces
-          faces={response.faces} />
-    </svg>
+          height={response.height}>
+        <image
+            x={0}
+            y={0}
+            width={response.width}
+            height={response.height}
+            href={image.dataUrl} />
+        <Faces
+            faces={response.faces}
+            shows={shows} />
+      </svg>
+    </>
   );
 }
 
@@ -334,7 +363,7 @@ export default function Page() {
         <>
           <h1>認識結果</h1>
           {result === null ? (
-            <p>解析中...</p>
+            <div>解析中...</div>
           ) : (
             <Result
                 image={image}

@@ -57,7 +57,7 @@ function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth
   }
 }
 
-function ScoreBar({ face, color, height = 4, padding = 3, strokeWidth = 1, strokeOpacity = 0.7, fillOpacity = 0.7 }) {
+function ScoreBar({ face, color, height = 4, padding = 5, strokeWidth = 3, strokeOpacity = 0.7, fillOpacity = 0.8 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   const width = x2 - x1;
   return (
@@ -70,7 +70,8 @@ function ScoreBar({ face, color, height = 4, padding = 3, strokeWidth = 1, strok
           stroke="white"
           strokeWidth={strokeWidth}
           strokeOpacity={strokeOpacity}
-          fill="none" />
+          fill="white"
+          fillOpacity={fillOpacity} />
       <rect
           x={x1 + padding}
           y={y1 + padding}

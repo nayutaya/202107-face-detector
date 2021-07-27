@@ -2,6 +2,51 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
+function ScoreBar({ face, color }) {
+  const bbox = face.boundingBox;
+  const width = bbox.x2 - bbox.x1;
+  return (
+    <rect
+        x={bbox.x1}
+        y={bbox.y1 - 3}
+        width={width * face.score}
+        height={3}
+        stroke="none"
+        fill={color} />
+  );
+}
+
+function Face({ face, isScoreVisible = true }) {
+  const bbox = face.boundingBox;
+  const width = bbox.x2 - bbox.x1;
+  const height = bbox.y2 - bbox.y1;
+  const color = {M: "#6666CC", F: "#CC6666"}[face.attributes.sex];
+  return (
+    <g>
+      <rect
+          x={bbox.x1}
+          y={bbox.y1}
+          width={width}
+          height={height}
+          stroke={color}
+          fill="none" />
+      {!isScoreVisible ? null :
+        <ScoreBar face={face} color={color} />
+      }
+    </g>
+  );
+}
+
+function Faces({ faces }) {
+  return (
+    <g>
+      {faces.map((face) => (
+        <Face face={face} />
+      ))}
+    </g>
+  );
+}
+
 function Result({ image, result }) {
   const response = result.response;
   return (
@@ -16,6 +61,7 @@ function Result({ image, result }) {
             width={response.width}
             height={response.height}
             href={image.dataUrl} />
+        <Faces faces={response.faces} />
       </svg>
     </div>
   );

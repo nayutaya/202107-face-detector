@@ -2,10 +2,29 @@ import Dropzone from "react-dropzone";
 import Head from "next/head";
 import { useState } from "react";
 
+function Result({ image, result }) {
+  const response = result.response;
+  return (
+    <div>
+      <svg
+          xmlns="http://www.w3.org/2000/svg"
+          version="1.1"
+          viewBox={`0 0 ${response.width} ${response.height}`}>
+        <image
+            x={0}
+            y={0}
+            width={response.width}
+            height={response.height}
+            href={image.dataUrl} />
+      </svg>
+    </div>
+  );
+}
+
 export default function Page() {
   const [image, setImage] = useState(null);
+  const [result, setResult] = useState(null);
 
-  // TODO: 顔検出サーバを呼び出す処理を実装する。
   // TODO: 結果を可視化する処理を実装する。
 
   const handleFile = (acceptedFiles) => {
@@ -24,10 +43,14 @@ export default function Page() {
         method: "POST",
         body: formData,
       };
+      setResult(null);
       // TODO: replace to internal API.
       fetch("http://192.168.1.204:8000/detect", param)
         .then((response) => response.json())
-        .then((result) => console.log({result}));
+        .then((result) => {
+          console.log({result});
+          setResult(result);
+        });
     }, false);
     fileReader.readAsDataURL(imageFile);
   }
@@ -63,6 +86,9 @@ export default function Page() {
           </div>
         )}
       </Dropzone>
+      {image === null || result === null ? null :
+        <Result image={image} result={result} />
+      }
     </div>
   );
 }

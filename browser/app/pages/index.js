@@ -345,13 +345,9 @@ export default function Page() {
         body: formData,
       };
       setResult(null);
-      // TODO: replace to internal API.
-      fetch("http://192.168.1.204:8000/detect", param)
+      fetch("/api/detect", param)
         .then((response) => response.json())
-        .then((result) => {
-          console.log({result});
-          setResult(result);
-        });
+        .then((result) => setResult(result));
     }, false);
     fileReader.readAsDataURL(imageFile);
   }

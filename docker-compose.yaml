@@ -9,3 +9,12 @@ services:
     # working_dir: "/mnt/workspace" # DEBUG:
     # command: "/bin/bash" # DEBUG:
     # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+  browser:
+    build: "browser"
+    ports:
+      - "8001:3000"
+    # volumes:
+      # - "./browser:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace/app" # DEBUG:
+    # command: "/bin/bash" # DEBUG:
+    # command: "npm run dev" # DEBUG:

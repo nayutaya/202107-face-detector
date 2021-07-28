@@ -15,12 +15,15 @@ docker-compose up -d
 
 curl -X POST \
   --header "Content-Type: multipart/form-data" \
-  --form "file=@43730.jpg;type=image/jpeg" \
+  --form "file=@pakutaso_43730.jpg;type=image/jpeg" \
   http://localhost:8000/detect
+
+open http://localhost:8001/
 ```
 
 ## 動作確認用の画像ファイル
 
-動作確認用の画像ファイル`43730.jpg`は「ぱくたそ」からダウンロードしました。
+動作確認用の画像ファイルは「ぱくたそ」からダウンロードしました。
 
-[顔に手を添えカメラ目線の美白女性の写真を無料ダウンロード（フリー素材） - ぱくたそ](https://www.pakutaso.com/20210219041post-33497.html)
+* `pakutaso_5574.jpg`: [決裁権が誰にもないの写真を無料ダウンロード（フリー素材） - ぱくたそ](https://www.pakutaso.com/20141237343post-4921.html)
+* `pakutaso_43730.jpg`: [顔に手を添えカメラ目線の美白女性の写真を無料ダウンロード（フリー素材） - ぱくたそ](https://www.pakutaso.com/20210219041post-33497.html)

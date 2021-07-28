@@ -16,27 +16,20 @@ export default async function handler(frontend_req, frontend_res) {
   });
 
   backend_req.addListener("response", (backend_res) => {
-    console.log("backend_req.response");
     backend_res.addListener("data", (chunk) => {
-      console.log("backend_res.data");
-      console.log({chunk});
       frontend_res.write(chunk, "binary");
     });
     backend_res.addListener("end", () => {
-      console.log("backend_res.end");
       frontend_res.end();
     });
     frontend_res.writeHead(backend_res.statusCode, backend_res.headers);
   });
 
   frontend_req.addListener("data", (chunk) => {
-    console.log("frontend_req.data");
-    console.log({chunk});
     backend_req.write(chunk, "binary");
   });
 
   frontend_req.addListener("end", () => {
-    console.log("frontend_req.end");
     backend_req.end();
   });
 }

@@ -3,7 +3,8 @@
 InsightFaceを使った顔検出サーバの実装例です。
 詳しくは以下の記事をご覧ください。
 
-[InsightFaceとFastAPIで顔検出サーバを作ってみた](https://zenn.dev/yuyakato/articles/6a1d8177901381)
+* [InsightFaceとFastAPIで顔検出サーバを作ってみた](https://zenn.dev/yuyakato/articles/6a1d8177901381)
+* [InsightFaceの顔検出結果をNext.jsで可視化してみた](https://zenn.dev/yuyakato/articles/e96b9d8ec289cc)
 
 ## 実行手順
 

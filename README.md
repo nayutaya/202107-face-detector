@@ -17,6 +17,8 @@ curl -X POST \
   --header "Content-Type: multipart/form-data" \
   --form "file=@pakutaso_43730.jpg;type=image/jpeg" \
   http://localhost:8000/detect
+
+open http://localhost:8001/
 ```
 
 ## 動作確認用の画像ファイル

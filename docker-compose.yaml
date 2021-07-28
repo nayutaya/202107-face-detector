@@ -13,8 +13,8 @@ services:
     build: "browser"
     ports:
       - "8001:3000"
-    volumes:
-      - "./browser:/mnt/workspace" # DEBUG:
-    working_dir: "/mnt/workspace/app" # DEBUG:
-    command: "/bin/bash" # DEBUG:
+    # volumes:
+      # - "./browser:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace/app" # DEBUG:
+    # command: "/bin/bash" # DEBUG:
     # command: "npm run dev" # DEBUG:

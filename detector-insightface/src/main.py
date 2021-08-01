@@ -1,5 +1,7 @@
+import base64
 import datetime
 import hashlib
+import io
 
 import fastapi
 import fastapi.middleware.cors
@@ -7,6 +9,13 @@ import insightface
 import numpy as np
 import onnxruntime
 import PIL.Image
+
+
+def encode_np(array):
+    bio = io.BytesIO()
+    np.save(bio, array)
+    return base64.standard_b64encode(bio.getvalue())
+
 
 SERVICE = {
     "name": "detector-insightface",
@@ -88,7 +97,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         ],
                     },
                     "attributes": {"sex": face.sex, "age": face.age},
-                    # TODO: face.embedding
+                    "embedding": encode_np(face.embedding),
                 }
                 for face in faces
             ],

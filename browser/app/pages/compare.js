@@ -206,52 +206,69 @@ export default function Page() {
           ))}
         </div>
       )}
-      {result1 == null || result2 == null ? null : (
+      {false ? null : (
         <table border={1}>
           <tbody>
             <tr>
-              <td></td>
-              {result2.response.faces.map((face, index2) => (
-                <td key={index2}>
-                  <CroppedFaceImage
-                    imageWidth={result2.response.width}
-                    imageHeight={result2.response.height}
-                    imageUrl={image2.dataUrl}
-                    faceWidth={100}
-                    faceHeight={100}
-                    faceBoundingBox={face.boundingBox} />
-                </td>
+              <td colSpan={2} rowSpan={2}></td>
+              <th colSpan={result2 == null ? 1 : result2.response.faces.length}>画像2</th>
+            </tr>
+            <tr>
+              {result2 == null ? (
+                <td>未選択</td>
+              ) : (
+                result2.response.faces.map((face, index2) => (
+                  <td key={index2}>
+                    <CroppedFaceImage
+                      imageWidth={result2.response.width}
+                      imageHeight={result2.response.height}
+                      imageUrl={image2.dataUrl}
+                      faceWidth={100}
+                      faceHeight={100}
+                      faceBoundingBox={face.boundingBox} />
+                  </td>
+                )
               ))}
             </tr>
-            {result1.response.faces.map((face, index1) => (
-              <tr key={index1}>
-                <td>
-                  <CroppedFaceImage
-                    imageWidth={result1.response.width}
-                    imageHeight={result1.response.height}
-                    imageUrl={image1.dataUrl}
-                    faceWidth={100}
-                    faceHeight={100}
-                    faceBoundingBox={face.boundingBox} />
-                </td>
-                {matrix == null ? (
-                  index1 != 0 ? null : (
-                    <td
-                        colSpan={result2.response.faces.length}
-                        rowSpan={result1.response.faces.length}
-                        align="center"
-                        valign="middle">
-                      読み込み中...
-                    </td>
-                  )
-                ) : (
-                  result2.response.faces.map((face, index2) => (
-                    <td key={index2} align="center">
-                      {matrix[index1][index2].toFixed(2)}
-                    </td>
-                  ))
-                )}
+            {result1 == null ? (
+              <tr>
+                <th>画像1</th>
+                <td>未選択</td>
               </tr>
+            ) : (
+              result1.response.faces.map((face, index1) => (
+                <tr key={index1}>
+                  {index1 != 0 ? null : (
+                    <th rowSpan={result1.response.faces.length}>画像1</th>
+                  )}
+                  <td>
+                    <CroppedFaceImage
+                      imageWidth={result1.response.width}
+                      imageHeight={result1.response.height}
+                      imageUrl={image1.dataUrl}
+                      faceWidth={100}
+                      faceHeight={100}
+                      faceBoundingBox={face.boundingBox} />
+                  </td>
+                  {matrix == null ? (
+                    index1 != 0 ? null : (
+                      <td
+                          colSpan={result2 == null ? 1 : result2.response.faces.length}
+                          rowSpan={result1.response.faces.length}
+                          align="center"
+                          valign="middle">
+                        読み込み中...
+                      </td>
+                    )
+                  ) : (
+                    result2.response.faces.map((face, index2) => (
+                      <td key={index2} align="center">
+                        {matrix[index1][index2].toFixed(2)}
+                      </td>
+                    ))
+                  )}
+                </tr>
+              )
             ))}
           </tbody>
         </table>

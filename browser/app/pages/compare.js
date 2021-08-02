@@ -37,20 +37,21 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
     </Dropzone>
   )
 }
-function FaceImage({ width, height, dataUrl, face }) {
+
+function FaceImage({ imageWidth, imageHeight, dataUrl, face, faceWidth, faceHeight }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   return (
     <svg
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
         viewBox={`${x1} ${y1} ${x2 - x1} ${y2 - y1}`}
-        width={200}
-        height={200}>
+        width={faceWidth}
+        height={faceHeight}>
       <image
           x={0}
           y={0}
-          width={width}
-          height={height}
+          width={imageWidth}
+          height={imageHeight}
           href={dataUrl} />
     </svg>
   );
@@ -186,8 +187,10 @@ export default function Page() {
           {result1.response.faces.map((face, index) => (
             <FaceImage
               key={index}
-              width={result1.response.width}
-              height={result1.response.height}
+              imageWidth={result1.response.width}
+              imageHeight={result1.response.height}
+              faceWidth={100}
+              faceHeight={100}
               dataUrl={image1.dataUrl}
               face={face} />
           ))}
@@ -198,12 +201,45 @@ export default function Page() {
           {result2.response.faces.map((face, index) => (
             <FaceImage
               key={index}
-              width={result2.response.width}
-              height={result2.response.height}
+              imageWidth={result2.response.width}
+              imageHeight={result2.response.height}
+              faceWidth={100}
+              faceHeight={100}
               dataUrl={image2.dataUrl}
               face={face} />
           ))}
         </div>
+      )}
+      {result1 == null ? null || result2 == null : (
+        <table border={1}>
+          <tr>
+            <td></td>
+            {result2.response.faces.map((face, index) => (
+              <td key={index}>
+                <FaceImage
+                  imageWidth={result2.response.width}
+                  imageHeight={result2.response.height}
+                  faceWidth={100}
+                  faceHeight={100}
+                  dataUrl={image2.dataUrl}
+                  face={face} />
+              </td>
+            ))}
+          </tr>
+          {result1.response.faces.map((face, index) => (
+            <tr key={index}>
+              <td>
+                <FaceImage
+                  imageWidth={result1.response.width}
+                  imageHeight={result1.response.height}
+                  faceWidth={100}
+                  faceHeight={100}
+                  dataUrl={image1.dataUrl}
+                  face={face} />
+              </td>
+            </tr>
+          ))}
+        </table>
       )}
     </>
   );

@@ -4,13 +4,17 @@ import Head from "next/head";
 
 import CroppedFaceImage from "../components/CroppedFaceImage";
 
-function readFile(file) {
+function getDataUrl(file) {
   return new Promise((resolve, reject) => {
-    const fileReader = new FileReader();
-    fileReader.onloadend = () => {
-      resolve(fileReader.result);
-    };
-    fileReader.readAsDataURL(file);
+    if ( file == null ) {
+      resolve(null);
+    } else {
+      const fileReader = new FileReader();
+      fileReader.onloadend = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.readAsDataURL(file);
+    }
   });
 };
 
@@ -71,47 +75,16 @@ function makeBackgroundImageStyle(imageUrl) {
   };
 }
 
-function ImageSelector({ onDrop, onLocallyLoaded }) {
-  const handleFile = (acceptedFiles) => {
-    onDrop(acceptedFiles);
-    if ( acceptedFiles.length < 0 ) return;
-    readFile(acceptedFiles[0]).then(({ file, dataUrl }) => {
-      onLocallyLoaded({
-        file,
-        dataUrl,
-      });
-    })
-  };
-
-  return (
-    <Dropzone onDrop={handleFile}>
-      {({getRootProps, getInputProps}) => (
-        <div
-            style={{
-              border: "2px dotted black",
-              padding: "5px",
-            }}
-          {...getRootProps()}>
-          <div
-              style={{
-                height: "200px",
-              }}>
-            <input {...getInputProps()} />
-          </div>
-        </div>
-      )}
-    </Dropzone>
-  )
-}
-
 function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
+  const faces1 = (result1 == null ? [] : result1.response.faces);
+  const faces2 = (result2 == null ? [] : result2.response.faces);
   return (
     <table border={1}>
       <tbody>
         <tr>
           <td colSpan={2} rowSpan={2}></td>
           <th
-              colSpan={result2 == null ? 1 : result2.response.faces.length}>
+              colSpan={result2 == null ? 1 : Math.max(1, faces2.length)}>
             画像2
           </th>
         </tr>
@@ -119,16 +92,20 @@ function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
           {result2 == null ? (
             <td>{imageUrl2 == null ? "未選択" : "解析中..."}</td>
           ) : (
-            result2.response.faces.map((face, index2) => (
-              <td key={index2}>
-                <CroppedFaceImage
-                  imageWidth={result2.response.width}
-                  imageHeight={result2.response.height}
-                  imageUrl={imageUrl2}
-                  faceWidth={100}
-                  faceHeight={100}
-                  faceBoundingBox={face.boundingBox} />
-              </td>
+            faces2.length < 1 ? (
+              <td>未検出</td>
+            ) : (
+              faces2.map((face, index2) => (
+                <td key={index2}>
+                  <CroppedFaceImage
+                    imageWidth={result2.response.width}
+                    imageHeight={result2.response.height}
+                    imageUrl={imageUrl2}
+                    faceWidth={100}
+                    faceHeight={100}
+                    faceBoundingBox={face.boundingBox} />
+                </td>
+              )
             )
           ))}
         </tr>
@@ -138,37 +115,44 @@ function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
             <td>{imageUrl1 == null ? "未選択" : "解析中..."}</td>
           </tr>
         ) : (
-          result1.response.faces.map((face, index1) => (
-            <tr key={index1}>
-              {index1 != 0 ? null : (
-                <th rowSpan={result1.response.faces.length}>画像1</th>
-              )}
-              <td>
-                <CroppedFaceImage
-                  imageWidth={result1.response.width}
-                  imageHeight={result1.response.height}
-                  imageUrl={imageUrl1}
-                  faceWidth={100}
-                  faceHeight={100}
-                  faceBoundingBox={face.boundingBox} />
-              </td>
-              {matrix == null ? (
-                index1 != 0 ? null : (
-                  <td
-                      colSpan={result2 == null ? 1 : result2.response.faces.length}
-                      rowSpan={result1.response.faces.length}
-                      align="center"
-                      valign="middle">
-                  </td>
-                )
-              ) : (
-                result2.response.faces.map((face, index2) => (
-                  <td key={index2} align="center">
-                    {matrix[index1][index2].toFixed(2)}
-                  </td>
-                ))
-              )}
+          faces1.length < 1 ? (
+            <tr>
+              <th>画像1</th>
+              <td>未検出</td>
             </tr>
+          ) : (
+            faces1.map((face, index1) => (
+              <tr key={index1}>
+                {index1 != 0 ? null : (
+                  <th rowSpan={faces1.length}>画像1</th>
+                )}
+                <td>
+                  <CroppedFaceImage
+                    imageWidth={result1.response.width}
+                    imageHeight={result1.response.height}
+                    imageUrl={imageUrl1}
+                    faceWidth={100}
+                    faceHeight={100}
+                    faceBoundingBox={face.boundingBox} />
+                </td>
+                {matrix == null ? (
+                  index1 != 0 ? null : (
+                    <td
+                        colSpan={result2 == null ? 1 : faces2.length}
+                        rowSpan={result1.response.faces.length}
+                        align="center"
+                        valign="middle">
+                    </td>
+                  )
+                ) : (
+                  faces2.map((face, index2) => (
+                    <td key={index2} align="center">
+                      {matrix[index1][index2].toFixed(2)}
+                    </td>
+                  ))
+                )}
+              </tr>
+            )
           )
         ))}
       </tbody>
@@ -186,21 +170,27 @@ export default function Page() {
   const [matrix, setMatrix] = useState(null);
 
   useEffect(async () => {
-    if ( imageFile1 == null ) return;
+    const imageUrl = await getDataUrl(imageFile1);
+    setImageUrl1(imageUrl);
+  }, [imageFile1]);
+
+  useEffect(async () => {
+    const imageUrl = await getDataUrl(imageFile2);
+    setImageUrl2(imageUrl);
+  }, [imageFile2]);
+
+  useEffect(async () => {
     setMatrix(null);
     setResult1(null);
-    const imageUrl = await readFile(imageFile1);
-    setImageUrl1(imageUrl);
+    if ( imageFile1 == null ) return;
     const result = await detect(imageFile1);
     setResult1(result);
   }, [imageFile1]);
 
   useEffect(async () => {
-    if ( imageFile2 == null ) return;
     setMatrix(null);
     setResult2(null);
-    const imageUrl = await readFile(imageFile2);
-    setImageUrl2(imageUrl);
+    if ( imageFile2 == null ) return;
     const result = await detect(imageFile2);
     setResult2(result);
   }, [imageFile2]);

@@ -62,6 +62,7 @@ export default function Page() {
   const [image2, setImage2] = useState({file: null, dataUrl: null});
   const [result1, setResult1] = useState(null);
   const [result2, setResult2] = useState(null);
+  const [matrix, setMatrix] = useState([]);
 
   const backgroundStyle1 = (image1.dataUrl == null ? {} :
     {
@@ -88,11 +89,13 @@ export default function Page() {
     const embeddings = [].concat(embeddings1).concat(embeddings2);
     // console.log({embeddings});
     const pairs = [];
+    const base1 = 0;
+    const base2 = embeddings1.length;
     for ( let i = 0; i < embeddings1.length; i++ ) {
       for ( let j = 0; j < embeddings2.length; j++ ) {
         pairs.push({
-          index1: i,
-          index2: embeddings1.length + j,
+          index1: base1 + i,
+          index2: base2 + j,
         });
       }
     }
@@ -110,7 +113,22 @@ export default function Page() {
     };
     fetch("/api/compare", param)
       .then((response) => response.json())
-      .then((result) => console.log({result}));
+      .then((response) => {
+        // console.log({response});
+        const newMatrix = [];
+        for ( let i = 0; i < embeddings1.length; i++ ) {
+          const row = [];
+          for ( let j = 0; j < embeddings2.length; j++ ) {
+            row.push(null);
+          }
+          newMatrix.push(row);
+        }
+        response.pairs.forEach((pair) => {
+          newMatrix[pair.index1][pair.index2 - base2] = pair.similarity;
+        });
+        // console.log({newMatrix});
+        setMatrix(newMatrix);
+      });
   }, [result1, result2]);
 
   const handleImage1 = (image) => {
@@ -210,12 +228,12 @@ export default function Page() {
           ))}
         </div>
       )}
-      {result1 == null ? null || result2 == null : (
+      {result1 == null || result2 == null || matrix == null ? null : (
         <table border={1}>
           <tr>
             <td></td>
-            {result2.response.faces.map((face, index) => (
-              <td key={index}>
+            {result2.response.faces.map((face, index2) => (
+              <td key={index2}>
                 <FaceImage
                   imageWidth={result2.response.width}
                   imageHeight={result2.response.height}
@@ -226,8 +244,8 @@ export default function Page() {
               </td>
             ))}
           </tr>
-          {result1.response.faces.map((face, index) => (
-            <tr key={index}>
+          {result1.response.faces.map((face, index1) => (
+            <tr key={index1}>
               <td>
                 <FaceImage
                   imageWidth={result1.response.width}
@@ -237,6 +255,11 @@ export default function Page() {
                   dataUrl={image1.dataUrl}
                   face={face} />
               </td>
+            {result2.response.faces.map((face, index2) => (
+              <td key={index2} align="center">
+                {((matrix[index1] || [])[index2] || 0).toFixed(2)}
+              </td>
+            ))}
             </tr>
           ))}
         </table>

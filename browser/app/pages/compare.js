@@ -8,7 +8,7 @@ function readFile(file) {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader();
     fileReader.onloadend = () => {
-      resolve({file, dataUrl: fileReader.result});
+      resolve(fileReader.result);
     };
     fileReader.readAsDataURL(file);
   });
@@ -104,7 +104,7 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
   )
 }
 
-function Matrix({ image1, image2, result1, result2, matrix }) {
+function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
   return (
     <table border={1}>
       <tbody>
@@ -117,14 +117,14 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
         </tr>
         <tr>
           {result2 == null ? (
-            <td>{image2 == null ? "未選択" : "解析中..."}</td>
+            <td>{imageUrl2 == null ? "未選択" : "解析中..."}</td>
           ) : (
             result2.response.faces.map((face, index2) => (
               <td key={index2}>
                 <CroppedFaceImage
                   imageWidth={result2.response.width}
                   imageHeight={result2.response.height}
-                  imageUrl={image2}
+                  imageUrl={imageUrl2}
                   faceWidth={100}
                   faceHeight={100}
                   faceBoundingBox={face.boundingBox} />
@@ -135,7 +135,7 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
         {result1 == null ? (
           <tr>
             <th>画像1</th>
-            <td>{image1 == null ? "未選択" : "解析中..."}</td>
+            <td>{imageUrl1 == null ? "未選択" : "解析中..."}</td>
           </tr>
         ) : (
           result1.response.faces.map((face, index1) => (
@@ -147,7 +147,7 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
                 <CroppedFaceImage
                   imageWidth={result1.response.width}
                   imageHeight={result1.response.height}
-                  imageUrl={image1}
+                  imageUrl={imageUrl1}
                   faceWidth={100}
                   faceHeight={100}
                   faceBoundingBox={face.boundingBox} />
@@ -181,45 +181,16 @@ export default function Page() {
   const [imageFile2, setImageFile2] = useState(null);
   const [imageUrl1, setImageUrl1] = useState(null);
   const [imageUrl2, setImageUrl2] = useState(null);
-  const [image1, setImage1] = useState({file: null, dataUrl: null});
-  const [image2, setImage2] = useState({file: null, dataUrl: null});
   const [result1, setResult1] = useState(null);
   const [result2, setResult2] = useState(null);
   const [matrix, setMatrix] = useState(null);
-
-  const backgroundStyle1 = makeBackgroundImageStyle(imageUrl1);
-  const backgroundStyle2 = makeBackgroundImageStyle(imageUrl2);
-
-  useEffect(async () => {
-    if ( result1 == null ) return;
-    if ( result2 == null ) return;
-    const embeddings1 = result1.response.faces.map((face) => face.embedding);
-    const embeddings2 = result2.response.faces.map((face) => face.embedding);
-    const matrix = await makeMatrix(embeddings1, embeddings2);
-    setMatrix(matrix);
-  }, [result1, result2]);
-
-  const handleImage1 = async (image) => {
-    setImage1(image);
-    setMatrix(null);
-    setResult1(null);
-    const result = await detect(image.file);
-    setResult1(result);
-  };
-  const handleImage2 = async (image) => {
-    setImage2(image);
-    setMatrix(null);
-    setResult2(null);
-    const result = await detect(image.file);
-    setResult2(result);
-  };
 
   useEffect(async () => {
     if ( imageFile1 == null ) return;
     setMatrix(null);
     setResult1(null);
     const imageUrl = await readFile(imageFile1);
-    setImageUrl1(imageUrl.dataUrl);
+    setImageUrl1(imageUrl);
     const result = await detect(imageFile1);
     setResult1(result);
   }, [imageFile1]);
@@ -229,45 +200,19 @@ export default function Page() {
     setMatrix(null);
     setResult2(null);
     const imageUrl = await readFile(imageFile2);
-    setImageUrl2(imageUrl.dataUrl);
+    setImageUrl2(imageUrl);
     const result = await detect(imageFile2);
     setResult2(result);
   }, [imageFile2]);
 
-/*
-      <div
-        style={{
-          position: "relative",
-          height: "150px",
-        }}>
-        <div
-            style={{
-              position: "absolute",
-              left: "0px",
-              top: "0px",
-              width: "200px",
-              height: "150px",
-              ...backgroundStyle1
-            }}>
-          <ImageSelector
-              onDrop={() => setImage1({file: null, dataUrl: null})}
-              onLocallyLoaded={handleImage1} />
-        </div>
-        <div
-            style={{
-              position: "absolute",
-              left: "300px",
-              top: "0px",
-              width: "200px",
-              height: "150px",
-              ...backgroundStyle2
-            }}>
-          <ImageSelector
-              onDrop={() => setImage2({file: null, dataUrl: null})}
-              onLocallyLoaded={handleImage2} />
-        </div>
-      </div>
-*/
+  useEffect(async () => {
+    if ( result1 == null ) return;
+    if ( result2 == null ) return;
+    const embeddings1 = result1.response.faces.map((face) => face.embedding);
+    const embeddings2 = result2.response.faces.map((face) => face.embedding);
+    const matrix = await makeMatrix(embeddings1, embeddings2);
+    setMatrix(matrix);
+  }, [result1, result2]);
 
   return (
     <>
@@ -288,7 +233,7 @@ export default function Page() {
             <div
                 style={{
                   height: "200px",
-                  ...backgroundStyle1,
+                  ...makeBackgroundImageStyle(imageUrl1),
                 }}>
               <input {...getInputProps()} />
             </div>
@@ -307,7 +252,7 @@ export default function Page() {
             <div
                 style={{
                   height: "200px",
-                  ...backgroundStyle2,
+                  ...makeBackgroundImageStyle(imageUrl2),
                 }}>
               <input {...getInputProps()} />
             </div>
@@ -316,8 +261,8 @@ export default function Page() {
       </Dropzone>
       <h1>結果</h1>
       <Matrix
-          image1={imageUrl1}
-          image2={imageUrl2}
+          imageUrl1={imageUrl1}
+          imageUrl2={imageUrl2}
           result1={result1}
           result2={result2}
           matrix={matrix} />

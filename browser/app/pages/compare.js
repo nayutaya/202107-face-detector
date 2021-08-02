@@ -41,8 +41,10 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
+  const [result1, setResult1] = useState(null);
+  const [result2, setResult2] = useState(null);
 
-  const backgroundStyle1 = (image1 == null ? {} :
+  const backgroundStyle1 = (image1.dataUrl == null ? {} :
     {
       backgroundColor: "rgba(255, 255, 255, 0.7)",
       backgroundImage: `url(${image1.dataUrl})`,
@@ -51,6 +53,44 @@ export default function Page() {
       backgroundPosition: "center",
     }
   );
+  const backgroundStyle2 = (image2.dataUrl == null ? {} :
+    {
+      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      backgroundImage: `url(${image2.dataUrl})`,
+      backgroundSize: "contain",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+    }
+  );
+
+  const handleImage1 = (image) => {
+    setImage1(image);
+
+    const formData = new FormData();
+    formData.append("file", image.file);
+    const param = {
+      method: "POST",
+      body: formData,
+    };
+    setResult1(null);
+    fetch("/api/detect", param)
+      .then((response) => response.json())
+      .then((result) => setResult1(result));
+  };
+  const handleImage2 = (image) => {
+    setImage2(image);
+
+    const formData = new FormData();
+    formData.append("file", image.file);
+    const param = {
+      method: "POST",
+      body: formData,
+    };
+    setResult2(null);
+    fetch("/api/detect", param)
+      .then((response) => response.json())
+      .then((result) => setResult2(result));
+  }
 
   return (
     <>
@@ -73,7 +113,7 @@ export default function Page() {
             }}>
           <ImageSelector
               onDrop={() => setImage1({file: null, dataUrl: null})}
-              onLocallyLoaded={(image) => setImage1(image)} />
+              onLocallyLoaded={handleImage1} />
         </div>
         <div
             style={{
@@ -82,10 +122,11 @@ export default function Page() {
               top: "0px",
               width: "200px",
               height: "150px",
+              ...backgroundStyle2
             }}>
           <ImageSelector
               onDrop={() => setImage2({file: null, dataUrl: null})}
-              onLocallyLoaded={(image) => setImage2(image)} />
+              onLocallyLoaded={handleImage2} />
         </div>
       </div>
     </>

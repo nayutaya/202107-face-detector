@@ -68,40 +68,29 @@ function compare(body) {
   return fetch("/api/compare", param);
 }
 
-function makeMatrix(embeddings1, embeddings2) {
+async function makeMatrix(embeddings1, embeddings2) {
   const embeddings = [].concat(embeddings1).concat(embeddings2);
   const pairs = [];
-  const base1 = 0;
-  const base2 = embeddings1.length;
+  const matrix = [];
   for ( let i = 0; i < embeddings1.length; i++ ) {
+    const row = [];
     for ( let j = 0; j < embeddings2.length; j++ ) {
       pairs.push({
-        index1: base1 + i,
-        index2: base2 + j,
+        index1: i,
+        index2: j + embeddings1.length,
       });
+      row.push(null);
     }
+    matrix.push(row);
   }
 
-  return compare({
-      embeddings: embeddings,
-      pairs: pairs,
-  })
-    .then((response) => response.json())
-    .then((response) => {
-      const newMatrix = [];
-      for ( let i = 0; i < embeddings1.length; i++ ) {
-        const row = [];
-        for ( let j = 0; j < embeddings2.length; j++ ) {
-          row.push(null);
-        }
-        newMatrix.push(row);
-      }
-      response.pairs.forEach((pair) => {
-        newMatrix[pair.index1][pair.index2 - base2] = pair.similarity;
-      });
+  const response1 = await compare({embeddings, pairs});
+  const response2 = await response1.json();
+  response2.pairs.forEach((pair) => {
+    matrix[pair.index1][pair.index2 - embeddings1.length] = pair.similarity;
+  });
 
-      return newMatrix;
-    });
+  return matrix;
 }
 
 export default function Page() {

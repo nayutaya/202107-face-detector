@@ -126,12 +126,14 @@ export default function Page() {
   const handleImage1 = async (image) => {
     setImage1(image);
     setResult1(null);
+    setMatrix(null);
     const result = await detect(image.file);
     setResult1(result);
   };
   const handleImage2 = async (image) => {
     setImage2(image);
     setResult2(null);
+    setMatrix(null);
     const result = await detect(image.file);
     setResult2(result);
   }
@@ -204,7 +206,7 @@ export default function Page() {
           ))}
         </div>
       )}
-      {result1 == null || result2 == null || matrix == null ? null : (
+      {result1 == null || result2 == null ? null : (
         <table border={1}>
           <tbody>
             <tr>
@@ -232,11 +234,23 @@ export default function Page() {
                     faceHeight={100}
                     faceBoundingBox={face.boundingBox} />
                 </td>
-              {result2.response.faces.map((face, index2) => (
-                <td key={index2} align="center">
-                  {((matrix[index1] || [])[index2] || 0).toFixed(2)}
-                </td>
-              ))}
+                {matrix == null ? (
+                  index1 != 0 ? null : (
+                    <td
+                        colSpan={result2.response.faces.length}
+                        rowSpan={result1.response.faces.length}
+                        align="center"
+                        valign="middle">
+                      読み込み中...
+                    </td>
+                  )
+                ) : (
+                  result2.response.faces.map((face, index2) => (
+                    <td key={index2} align="center">
+                      {matrix[index1][index2].toFixed(2)}
+                    </td>
+                  ))
+                )}
               </tr>
             ))}
           </tbody>

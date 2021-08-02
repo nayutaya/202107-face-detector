@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Dropzone from "react-dropzone";
 import Head from "next/head";
 
@@ -37,6 +37,24 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
     </Dropzone>
   )
 }
+function FaceImage({ width, height, dataUrl, face }) {
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  return (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewBox={`${x1} ${y1} ${x2 - x1} ${y2 - y1}`}
+        width={200}
+        height={200}>
+      <image
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          href={dataUrl} />
+    </svg>
+  );
+}
 
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
@@ -46,7 +64,6 @@ export default function Page() {
 
   const backgroundStyle1 = (image1.dataUrl == null ? {} :
     {
-      backgroundColor: "rgba(255, 255, 255, 0.7)",
       backgroundImage: `url(${image1.dataUrl})`,
       backgroundSize: "contain",
       backgroundRepeat: "no-repeat",
@@ -55,13 +72,30 @@ export default function Page() {
   );
   const backgroundStyle2 = (image2.dataUrl == null ? {} :
     {
-      backgroundColor: "rgba(255, 255, 255, 0.7)",
       backgroundImage: `url(${image2.dataUrl})`,
       backgroundSize: "contain",
       backgroundRepeat: "no-repeat",
       backgroundPosition: "center",
     }
   );
+
+  useEffect(() => {
+    if ( result1 == null ) return;
+    if ( result2 == null ) return;
+    const param = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        embeddings: [],
+        pairs: [],
+      }),
+    };
+    fetch("/api/compare", param)
+      .then((response) => response.json())
+      .then((result) => console.log({result}));
+  }, [result1, result2]);
 
   const handleImage1 = (image) => {
     setImage1(image);
@@ -98,9 +132,11 @@ export default function Page() {
         <title>face-detector | compare</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <h1>入力</h1>
       <div
         style={{
-          position: "relative"
+          position: "relative",
+          height: "150px",
         }}>
         <div
             style={{
@@ -129,6 +165,31 @@ export default function Page() {
               onLocallyLoaded={handleImage2} />
         </div>
       </div>
+      <h1>結果</h1>
+      {result1 == null ? null : (
+        <div>
+          {result1.response.faces.map((face, index) => (
+            <FaceImage
+              key={index}
+              width={result1.response.width}
+              height={result1.response.height}
+              dataUrl={image1.dataUrl}
+              face={face} />
+          ))}
+        </div>
+      )}
+      {result2 == null ? null : (
+        <div>
+          {result2.response.faces.map((face, index) => (
+            <FaceImage
+              key={index}
+              width={result2.response.width}
+              height={result2.response.height}
+              dataUrl={image2.dataUrl}
+              face={face} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

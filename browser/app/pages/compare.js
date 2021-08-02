@@ -4,19 +4,26 @@ import Head from "next/head";
 
 import CroppedFaceImage from "../components/CroppedFaceImage";
 
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.onloadend = () => {
+      resolve({file, dataUrl: fileReader.result});
+    };
+    fileReader.readAsDataURL(file);
+  });
+};
+
 function ImageSelector({ onDrop, onLocallyLoaded }) {
   const handleFile = (acceptedFiles) => {
     onDrop(acceptedFiles);
     if ( acceptedFiles.length < 0 ) return;
-    const imageFile = acceptedFiles[0];
-    const fileReader = new FileReader();
-    fileReader.addEventListener("load", () => {
+    readFile(acceptedFiles[0]).then(({ file, dataUrl }) => {
       onLocallyLoaded({
-        file: imageFile,
-        dataUrl: fileReader.result,
+        file,
+        dataUrl,
       });
-    }, false);
-    fileReader.readAsDataURL(imageFile);
+    })
   };
 
   return (

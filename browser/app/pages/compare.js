@@ -82,14 +82,29 @@ export default function Page() {
   useEffect(() => {
     if ( result1 == null ) return;
     if ( result2 == null ) return;
+    const embeddings1 = result1.response.faces.map((face) => face.embedding);
+    const embeddings2 = result2.response.faces.map((face) => face.embedding);
+    const embeddings = [].concat(embeddings1).concat(embeddings2);
+    // console.log({embeddings});
+    const pairs = [];
+    for ( let i = 0; i < embeddings1.length; i++ ) {
+      for ( let j = 0; j < embeddings2.length; j++ ) {
+        pairs.push({
+          index1: i,
+          index2: embeddings1.length + j,
+        });
+      }
+    }
+    console.log({pairs});
+
     const param = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        embeddings: [],
-        pairs: [],
+        embeddings: embeddings,
+        pairs: pairs,
       }),
     };
     fetch("/api/compare", param)

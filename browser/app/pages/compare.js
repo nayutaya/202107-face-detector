@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Dropzone from "react-dropzone";
 import Head from "next/head";
 
+import CroppedFaceImage from "../components/CroppedFaceImage";
+
 function ImageSelector({ onDrop, onLocallyLoaded }) {
   const handleFile = (acceptedFiles) => {
     onDrop(acceptedFiles);
@@ -36,25 +38,6 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
       )}
     </Dropzone>
   )
-}
-
-function FaceImage({ imageWidth, imageHeight, dataUrl, face, faceWidth, faceHeight }) {
-  const { x1, y1, x2, y2 } = face.boundingBox;
-  return (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        version="1.1"
-        viewBox={`${x1} ${y1} ${x2 - x1} ${y2 - y1}`}
-        width={faceWidth}
-        height={faceHeight}>
-      <image
-          x={0}
-          y={0}
-          width={imageWidth}
-          height={imageHeight}
-          href={dataUrl} />
-    </svg>
-  );
 }
 
 export default function Page() {
@@ -203,7 +186,7 @@ export default function Page() {
       {result1 == null ? null : (
         <div>
           {result1.response.faces.map((face, index) => (
-            <FaceImage
+            <CroppedFaceImage
               key={index}
               imageWidth={result1.response.width}
               imageHeight={result1.response.height}
@@ -217,7 +200,7 @@ export default function Page() {
       {result2 == null ? null : (
         <div>
           {result2.response.faces.map((face, index) => (
-            <FaceImage
+            <CroppedFaceImage
               key={index}
               imageWidth={result2.response.width}
               imageHeight={result2.response.height}
@@ -234,7 +217,7 @@ export default function Page() {
             <td></td>
             {result2.response.faces.map((face, index2) => (
               <td key={index2}>
-                <FaceImage
+                <CroppedFaceImage
                   imageWidth={result2.response.width}
                   imageHeight={result2.response.height}
                   faceWidth={100}
@@ -247,7 +230,7 @@ export default function Page() {
           {result1.response.faces.map((face, index1) => (
             <tr key={index1}>
               <td>
-                <FaceImage
+                <CroppedFaceImage
                   imageWidth={result1.response.width}
                   imageHeight={result1.response.height}
                   faceWidth={100}

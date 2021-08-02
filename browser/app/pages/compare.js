@@ -68,6 +68,42 @@ function compare(body) {
   return fetch("/api/compare", param);
 }
 
+function makeMatrix(embeddings1, embeddings2) {
+  const embeddings = [].concat(embeddings1).concat(embeddings2);
+  const pairs = [];
+  const base1 = 0;
+  const base2 = embeddings1.length;
+  for ( let i = 0; i < embeddings1.length; i++ ) {
+    for ( let j = 0; j < embeddings2.length; j++ ) {
+      pairs.push({
+        index1: base1 + i,
+        index2: base2 + j,
+      });
+    }
+  }
+
+  return compare({
+      embeddings: embeddings,
+      pairs: pairs,
+  })
+    .then((response) => response.json())
+    .then((response) => {
+      const newMatrix = [];
+      for ( let i = 0; i < embeddings1.length; i++ ) {
+        const row = [];
+        for ( let j = 0; j < embeddings2.length; j++ ) {
+          row.push(null);
+        }
+        newMatrix.push(row);
+      }
+      response.pairs.forEach((pair) => {
+        newMatrix[pair.index1][pair.index2 - base2] = pair.similarity;
+      });
+
+      return newMatrix;
+    });
+}
+
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
@@ -83,38 +119,8 @@ export default function Page() {
     if ( result2 == null ) return;
     const embeddings1 = result1.response.faces.map((face) => face.embedding);
     const embeddings2 = result2.response.faces.map((face) => face.embedding);
-    const embeddings = [].concat(embeddings1).concat(embeddings2);
-    const pairs = [];
-    const base1 = 0;
-    const base2 = embeddings1.length;
-    for ( let i = 0; i < embeddings1.length; i++ ) {
-      for ( let j = 0; j < embeddings2.length; j++ ) {
-        pairs.push({
-          index1: base1 + i,
-          index2: base2 + j,
-        });
-      }
-    }
-
-    compare({
-        embeddings: embeddings,
-        pairs: pairs,
-    })
-      .then((response) => response.json())
-      .then((response) => {
-        const newMatrix = [];
-        for ( let i = 0; i < embeddings1.length; i++ ) {
-          const row = [];
-          for ( let j = 0; j < embeddings2.length; j++ ) {
-            row.push(null);
-          }
-          newMatrix.push(row);
-        }
-        response.pairs.forEach((pair) => {
-          newMatrix[pair.index1][pair.index2 - base2] = pair.similarity;
-        });
-        setMatrix(newMatrix);
-      });
+    makeMatrix(embeddings1, embeddings2)
+      .then((matrix) => setMatrix(matrix));
   }, [result1, result2]);
 
   const handleImage1 = (image) => {

@@ -109,7 +109,7 @@ export default function Page() {
   const [image2, setImage2] = useState({file: null, dataUrl: null});
   const [result1, setResult1] = useState(null);
   const [result2, setResult2] = useState(null);
-  const [matrix, setMatrix] = useState([]);
+  const [matrix, setMatrix] = useState(null);
 
   const backgroundStyle1 = makeBackgroundImageStyle(image1.dataUrl);
   const backgroundStyle2 = makeBackgroundImageStyle(image2.dataUrl);
@@ -206,38 +206,40 @@ export default function Page() {
       )}
       {result1 == null || result2 == null || matrix == null ? null : (
         <table border={1}>
-          <tr>
-            <td></td>
-            {result2.response.faces.map((face, index2) => (
-              <td key={index2}>
-                <CroppedFaceImage
-                  imageWidth={result2.response.width}
-                  imageHeight={result2.response.height}
-                  imageUrl={image2.dataUrl}
-                  faceWidth={100}
-                  faceHeight={100}
-                  faceBoundingBox={face.boundingBox} />
-              </td>
-            ))}
-          </tr>
-          {result1.response.faces.map((face, index1) => (
-            <tr key={index1}>
-              <td>
-                <CroppedFaceImage
-                  imageWidth={result1.response.width}
-                  imageHeight={result1.response.height}
-                  imageUrl={image1.dataUrl}
-                  faceWidth={100}
-                  faceHeight={100}
-                  faceBoundingBox={face.boundingBox} />
-              </td>
-            {result2.response.faces.map((face, index2) => (
-              <td key={index2} align="center">
-                {((matrix[index1] || [])[index2] || 0).toFixed(2)}
-              </td>
-            ))}
+          <tbody>
+            <tr>
+              <td></td>
+              {result2.response.faces.map((face, index2) => (
+                <td key={index2}>
+                  <CroppedFaceImage
+                    imageWidth={result2.response.width}
+                    imageHeight={result2.response.height}
+                    imageUrl={image2.dataUrl}
+                    faceWidth={100}
+                    faceHeight={100}
+                    faceBoundingBox={face.boundingBox} />
+                </td>
+              ))}
             </tr>
-          ))}
+            {result1.response.faces.map((face, index1) => (
+              <tr key={index1}>
+                <td>
+                  <CroppedFaceImage
+                    imageWidth={result1.response.width}
+                    imageHeight={result1.response.height}
+                    imageUrl={image1.dataUrl}
+                    faceWidth={100}
+                    faceHeight={100}
+                    faceBoundingBox={face.boundingBox} />
+                </td>
+              {result2.response.faces.map((face, index2) => (
+                <td key={index2} align="center">
+                  {((matrix[index1] || [])[index2] || 0).toFixed(2)}
+                </td>
+              ))}
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </>

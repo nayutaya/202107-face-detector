@@ -57,6 +57,17 @@ function makeBackgroundImageStyle(imageUrl) {
   };
 }
 
+function compare(body) {
+  const param = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  };
+  return fetch("/api/compare", param);
+}
+
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
@@ -85,17 +96,10 @@ export default function Page() {
       }
     }
 
-    const param = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    compare({
         embeddings: embeddings,
         pairs: pairs,
-      }),
-    };
-    fetch("/api/compare", param)
+    })
       .then((response) => response.json())
       .then((response) => {
         const newMatrix = [];

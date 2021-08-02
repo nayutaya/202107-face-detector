@@ -21,7 +21,7 @@ curl -X POST \
 
 curl -X POST \
   --header "Content-Type: application/json" \
-  --data-binary @example1.json \
+  --data-binary @embeddings.json \
   http://localhost:8000/compare
 
 open http://localhost:8001/

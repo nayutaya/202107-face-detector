@@ -14,47 +14,15 @@ function readFile(file) {
   });
 };
 
-function ImageSelector({ onDrop, onLocallyLoaded }) {
-  const handleFile = (acceptedFiles) => {
-    onDrop(acceptedFiles);
-    if ( acceptedFiles.length < 0 ) return;
-    readFile(acceptedFiles[0]).then(({ file, dataUrl }) => {
-      onLocallyLoaded({
-        file,
-        dataUrl,
-      });
-    })
+async function detect(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const param = {
+    method: "POST",
+    body: formData,
   };
-
-  return (
-    <Dropzone onDrop={handleFile}>
-      {({getRootProps, getInputProps}) => (
-        <div
-            style={{
-              border: "2px dotted black",
-              padding: "5px",
-            }}
-          {...getRootProps()}>
-          <div
-              style={{
-                height: "200px",
-              }}>
-            <input {...getInputProps()} />
-          </div>
-        </div>
-      )}
-    </Dropzone>
-  )
-}
-
-function makeBackgroundImageStyle(imageUrl) {
-  if ( imageUrl == null ) return {};
-  return {
-    backgroundImage: `url(${imageUrl})`,
-    backgroundSize: "contain",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-  };
+  const response = await fetch("/api/detect", param);
+  return await response.json();
 }
 
 function compare(body) {
@@ -93,6 +61,49 @@ async function makeMatrix(embeddings1, embeddings2) {
   return matrix;
 }
 
+function makeBackgroundImageStyle(imageUrl) {
+  if ( imageUrl == null ) return {};
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    backgroundSize: "contain",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+  };
+}
+
+function ImageSelector({ onDrop, onLocallyLoaded }) {
+  const handleFile = (acceptedFiles) => {
+    onDrop(acceptedFiles);
+    if ( acceptedFiles.length < 0 ) return;
+    readFile(acceptedFiles[0]).then(({ file, dataUrl }) => {
+      onLocallyLoaded({
+        file,
+        dataUrl,
+      });
+    })
+  };
+
+  return (
+    <Dropzone onDrop={handleFile}>
+      {({getRootProps, getInputProps}) => (
+        <div
+            style={{
+              border: "2px dotted black",
+              padding: "5px",
+            }}
+          {...getRootProps()}>
+          <div
+              style={{
+                height: "200px",
+              }}>
+            <input {...getInputProps()} />
+          </div>
+        </div>
+      )}
+    </Dropzone>
+  )
+}
+
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
@@ -103,42 +114,26 @@ export default function Page() {
   const backgroundStyle1 = makeBackgroundImageStyle(image1.dataUrl);
   const backgroundStyle2 = makeBackgroundImageStyle(image2.dataUrl);
 
-  useEffect(() => {
+  useEffect(async () => {
     if ( result1 == null ) return;
     if ( result2 == null ) return;
     const embeddings1 = result1.response.faces.map((face) => face.embedding);
     const embeddings2 = result2.response.faces.map((face) => face.embedding);
-    makeMatrix(embeddings1, embeddings2)
-      .then((matrix) => setMatrix(matrix));
+    const matrix = await makeMatrix(embeddings1, embeddings2);
+    setMatrix(matrix);
   }, [result1, result2]);
 
-  const handleImage1 = (image) => {
+  const handleImage1 = async (image) => {
     setImage1(image);
-
-    const formData = new FormData();
-    formData.append("file", image.file);
-    const param = {
-      method: "POST",
-      body: formData,
-    };
     setResult1(null);
-    fetch("/api/detect", param)
-      .then((response) => response.json())
-      .then((result) => setResult1(result));
+    const result = await detect(image.file);
+    setResult1(result);
   };
-  const handleImage2 = (image) => {
+  const handleImage2 = async (image) => {
     setImage2(image);
-
-    const formData = new FormData();
-    formData.append("file", image.file);
-    const param = {
-      method: "POST",
-      body: formData,
-    };
     setResult2(null);
-    fetch("/api/detect", param)
-      .then((response) => response.json())
-      .then((result) => setResult2(result));
+    const result = await detect(image.file);
+    setResult2(result);
   }
 
   return (

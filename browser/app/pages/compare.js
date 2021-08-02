@@ -29,7 +29,7 @@ async function detect(file) {
   return await response.json();
 }
 
-function compare(body) {
+async function compare(body) {
   const param = {
     method: "POST",
     headers: {
@@ -37,7 +37,8 @@ function compare(body) {
     },
     body: JSON.stringify(body),
   };
-  return fetch("/api/compare", param);
+  const response = await fetch("/api/compare", param);
+  return await response.json();
 }
 
 async function makeMatrix(embeddings1, embeddings2) {
@@ -56,9 +57,8 @@ async function makeMatrix(embeddings1, embeddings2) {
     matrix.push(row);
   }
 
-  const response1 = await compare({embeddings, pairs});
-  const response2 = await response1.json();
-  response2.pairs.forEach((pair) => {
+  const response = await compare({embeddings, pairs});
+  response.pairs.forEach((pair) => {
     matrix[pair.index1][pair.index2 - embeddings1.length] = pair.similarity;
   });
 
@@ -160,6 +160,29 @@ function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
   );
 }
 
+function ImageSelector({ onDrop, imageUrl }) {
+  return (
+    <Dropzone onDrop={onDrop}>
+      {({getRootProps, getInputProps}) => (
+        <div
+            style={{
+              border: "2px dotted black",
+              padding: "5px",
+            }}
+          {...getRootProps()}>
+          <div
+              style={{
+                height: "200px",
+                ...makeBackgroundImageStyle(imageUrl),
+              }}>
+            <input {...getInputProps()} />
+          </div>
+        </div>
+      )}
+    </Dropzone>
+  );
+}
+
 export default function Page() {
   const [imageFile1, setImageFile1] = useState(null);
   const [imageFile2, setImageFile2] = useState(null);
@@ -212,43 +235,13 @@ export default function Page() {
       </Head>
       <h1>入力</h1>
       <h2>画像1</h2>
-      <Dropzone onDrop={(acceptedFiles) => setImageFile1(acceptedFiles[0])}>
-        {({getRootProps, getInputProps}) => (
-          <div
-              style={{
-                border: "2px dotted black",
-                padding: "5px",
-              }}
-            {...getRootProps()}>
-            <div
-                style={{
-                  height: "200px",
-                  ...makeBackgroundImageStyle(imageUrl1),
-                }}>
-              <input {...getInputProps()} />
-            </div>
-          </div>
-        )}
-      </Dropzone>
+      <ImageSelector
+          onDrop={(acceptedFiles) => setImageFile1(acceptedFiles[0])}
+          imageUrl={imageUrl1} />
       <h2>画像2</h2>
-      <Dropzone onDrop={(acceptedFiles) => setImageFile2(acceptedFiles[0])}>
-        {({getRootProps, getInputProps}) => (
-          <div
-              style={{
-                border: "2px dotted black",
-                padding: "5px",
-              }}
-            {...getRootProps()}>
-            <div
-                style={{
-                  height: "200px",
-                  ...makeBackgroundImageStyle(imageUrl2),
-                }}>
-              <input {...getInputProps()} />
-            </div>
-          </div>
-        )}
-      </Dropzone>
+      <ImageSelector
+          onDrop={(acceptedFiles) => setImageFile2(acceptedFiles[0])}
+          imageUrl={imageUrl2} />
       <h1>結果</h1>
       <Matrix
           imageUrl1={imageUrl1}

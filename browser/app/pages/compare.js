@@ -40,6 +40,16 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
   )
 }
 
+function makeBackgroundImageStyle(imageUrl) {
+  if ( imageUrl == null ) return {};
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    backgroundSize: "contain",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+  };
+}
+
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
@@ -47,22 +57,8 @@ export default function Page() {
   const [result2, setResult2] = useState(null);
   const [matrix, setMatrix] = useState([]);
 
-  const backgroundStyle1 = (image1.dataUrl == null ? {} :
-    {
-      backgroundImage: `url(${image1.dataUrl})`,
-      backgroundSize: "contain",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "center",
-    }
-  );
-  const backgroundStyle2 = (image2.dataUrl == null ? {} :
-    {
-      backgroundImage: `url(${image2.dataUrl})`,
-      backgroundSize: "contain",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "center",
-    }
-  );
+  const backgroundStyle1 = makeBackgroundImageStyle(image1.dataUrl);
+  const backgroundStyle2 = makeBackgroundImageStyle(image2.dataUrl);
 
   useEffect(() => {
     if ( result1 == null ) return;

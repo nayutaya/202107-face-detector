@@ -104,6 +104,78 @@ function ImageSelector({ onDrop, onLocallyLoaded }) {
   )
 }
 
+function Matrix({ image1, image2, result1, result2, matrix }) {
+  return (
+    <table border={1}>
+      <tbody>
+        <tr>
+          <td colSpan={2} rowSpan={2}></td>
+          <th
+              colSpan={result2 == null ? 1 : result2.response.faces.length}>
+            画像2
+          </th>
+        </tr>
+        <tr>
+          {result2 == null ? (
+            <td>{image2.file == null ? "未選択" : "解析中..."}</td>
+          ) : (
+            result2.response.faces.map((face, index2) => (
+              <td key={index2}>
+                <CroppedFaceImage
+                  imageWidth={result2.response.width}
+                  imageHeight={result2.response.height}
+                  imageUrl={image2.dataUrl}
+                  faceWidth={100}
+                  faceHeight={100}
+                  faceBoundingBox={face.boundingBox} />
+              </td>
+            )
+          ))}
+        </tr>
+        {result1 == null ? (
+          <tr>
+            <th>画像1</th>
+            <td>{image1.file == null ? "未選択" : "解析中..."}</td>
+          </tr>
+        ) : (
+          result1.response.faces.map((face, index1) => (
+            <tr key={index1}>
+              {index1 != 0 ? null : (
+                <th rowSpan={result1.response.faces.length}>画像1</th>
+              )}
+              <td>
+                <CroppedFaceImage
+                  imageWidth={result1.response.width}
+                  imageHeight={result1.response.height}
+                  imageUrl={image1.dataUrl}
+                  faceWidth={100}
+                  faceHeight={100}
+                  faceBoundingBox={face.boundingBox} />
+              </td>
+              {matrix == null ? (
+                index1 != 0 ? null : (
+                  <td
+                      colSpan={result2 == null ? 1 : result2.response.faces.length}
+                      rowSpan={result1.response.faces.length}
+                      align="center"
+                      valign="middle">
+                  </td>
+                )
+              ) : (
+                result2.response.faces.map((face, index2) => (
+                  <td key={index2} align="center">
+                    {matrix[index1][index2].toFixed(2)}
+                  </td>
+                ))
+              )}
+            </tr>
+          )
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export default function Page() {
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
@@ -125,15 +197,15 @@ export default function Page() {
 
   const handleImage1 = async (image) => {
     setImage1(image);
-    setResult1(null);
     setMatrix(null);
+    setResult1(null);
     const result = await detect(image.file);
     setResult1(result);
   };
   const handleImage2 = async (image) => {
     setImage2(image);
-    setResult2(null);
     setMatrix(null);
+    setResult2(null);
     const result = await detect(image.file);
     setResult2(result);
   }
@@ -178,101 +250,12 @@ export default function Page() {
         </div>
       </div>
       <h1>結果</h1>
-      {result1 == null ? null : (
-        <div>
-          {result1.response.faces.map((face, index) => (
-            <CroppedFaceImage
-              key={index}
-              imageWidth={result1.response.width}
-              imageHeight={result1.response.height}
-              imageUrl={image1.dataUrl}
-              faceWidth={100}
-              faceHeight={100}
-              faceBoundingBox={face.boundingBox} />
-          ))}
-        </div>
-      )}
-      {result2 == null ? null : (
-        <div>
-          {result2.response.faces.map((face, index) => (
-            <CroppedFaceImage
-              key={index}
-              imageWidth={result2.response.width}
-              imageHeight={result2.response.height}
-              imageUrl={image2.dataUrl}
-              faceWidth={100}
-              faceHeight={100}
-              faceBoundingBox={face.boundingBox} />
-          ))}
-        </div>
-      )}
-      {false ? null : (
-        <table border={1}>
-          <tbody>
-            <tr>
-              <td colSpan={2} rowSpan={2}></td>
-              <th colSpan={result2 == null ? 1 : result2.response.faces.length}>画像2</th>
-            </tr>
-            <tr>
-              {result2 == null ? (
-                <td>未選択</td>
-              ) : (
-                result2.response.faces.map((face, index2) => (
-                  <td key={index2}>
-                    <CroppedFaceImage
-                      imageWidth={result2.response.width}
-                      imageHeight={result2.response.height}
-                      imageUrl={image2.dataUrl}
-                      faceWidth={100}
-                      faceHeight={100}
-                      faceBoundingBox={face.boundingBox} />
-                  </td>
-                )
-              ))}
-            </tr>
-            {result1 == null ? (
-              <tr>
-                <th>画像1</th>
-                <td>未選択</td>
-              </tr>
-            ) : (
-              result1.response.faces.map((face, index1) => (
-                <tr key={index1}>
-                  {index1 != 0 ? null : (
-                    <th rowSpan={result1.response.faces.length}>画像1</th>
-                  )}
-                  <td>
-                    <CroppedFaceImage
-                      imageWidth={result1.response.width}
-                      imageHeight={result1.response.height}
-                      imageUrl={image1.dataUrl}
-                      faceWidth={100}
-                      faceHeight={100}
-                      faceBoundingBox={face.boundingBox} />
-                  </td>
-                  {matrix == null ? (
-                    index1 != 0 ? null : (
-                      <td
-                          colSpan={result2 == null ? 1 : result2.response.faces.length}
-                          rowSpan={result1.response.faces.length}
-                          align="center"
-                          valign="middle">
-                        読み込み中...
-                      </td>
-                    )
-                  ) : (
-                    result2.response.faces.map((face, index2) => (
-                      <td key={index2} align="center">
-                        {matrix[index1][index2].toFixed(2)}
-                      </td>
-                    ))
-                  )}
-                </tr>
-              )
-            ))}
-          </tbody>
-        </table>
-      )}
+      <Matrix
+          image1={image1}
+          image2={image2}
+          result1={result1}
+          result2={result2}
+          matrix={matrix} />
     </>
   );
 }

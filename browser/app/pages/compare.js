@@ -117,14 +117,14 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
         </tr>
         <tr>
           {result2 == null ? (
-            <td>{image2.file == null ? "未選択" : "解析中..."}</td>
+            <td>{image2 == null ? "未選択" : "解析中..."}</td>
           ) : (
             result2.response.faces.map((face, index2) => (
               <td key={index2}>
                 <CroppedFaceImage
                   imageWidth={result2.response.width}
                   imageHeight={result2.response.height}
-                  imageUrl={image2.dataUrl}
+                  imageUrl={image2}
                   faceWidth={100}
                   faceHeight={100}
                   faceBoundingBox={face.boundingBox} />
@@ -135,7 +135,7 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
         {result1 == null ? (
           <tr>
             <th>画像1</th>
-            <td>{image1.file == null ? "未選択" : "解析中..."}</td>
+            <td>{image1 == null ? "未選択" : "解析中..."}</td>
           </tr>
         ) : (
           result1.response.faces.map((face, index1) => (
@@ -147,7 +147,7 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
                 <CroppedFaceImage
                   imageWidth={result1.response.width}
                   imageHeight={result1.response.height}
-                  imageUrl={image1.dataUrl}
+                  imageUrl={image1}
                   faceWidth={100}
                   faceHeight={100}
                   faceBoundingBox={face.boundingBox} />
@@ -177,14 +177,18 @@ function Matrix({ image1, image2, result1, result2, matrix }) {
 }
 
 export default function Page() {
+  const [imageFile1, setImageFile1] = useState(null);
+  const [imageFile2, setImageFile2] = useState(null);
+  const [imageUrl1, setImageUrl1] = useState(null);
+  const [imageUrl2, setImageUrl2] = useState(null);
   const [image1, setImage1] = useState({file: null, dataUrl: null});
   const [image2, setImage2] = useState({file: null, dataUrl: null});
   const [result1, setResult1] = useState(null);
   const [result2, setResult2] = useState(null);
   const [matrix, setMatrix] = useState(null);
 
-  const backgroundStyle1 = makeBackgroundImageStyle(image1.dataUrl);
-  const backgroundStyle2 = makeBackgroundImageStyle(image2.dataUrl);
+  const backgroundStyle1 = makeBackgroundImageStyle(imageUrl1);
+  const backgroundStyle2 = makeBackgroundImageStyle(imageUrl2);
 
   useEffect(async () => {
     if ( result1 == null ) return;
@@ -208,15 +212,29 @@ export default function Page() {
     setResult2(null);
     const result = await detect(image.file);
     setResult2(result);
-  }
+  };
 
-  return (
-    <>
-      <Head>
-        <title>face-detector | compare</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <h1>入力</h1>
+  useEffect(async () => {
+    if ( imageFile1 == null ) return;
+    setMatrix(null);
+    setResult1(null);
+    const imageUrl = await readFile(imageFile1);
+    setImageUrl1(imageUrl.dataUrl);
+    const result = await detect(imageFile1);
+    setResult1(result);
+  }, [imageFile1]);
+
+  useEffect(async () => {
+    if ( imageFile2 == null ) return;
+    setMatrix(null);
+    setResult2(null);
+    const imageUrl = await readFile(imageFile2);
+    setImageUrl2(imageUrl.dataUrl);
+    const result = await detect(imageFile2);
+    setResult2(result);
+  }, [imageFile2]);
+
+/*
       <div
         style={{
           position: "relative",
@@ -249,10 +267,57 @@ export default function Page() {
               onLocallyLoaded={handleImage2} />
         </div>
       </div>
+*/
+
+  return (
+    <>
+      <Head>
+        <title>face-detector | compare</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <h1>入力</h1>
+      <h2>画像1</h2>
+      <Dropzone onDrop={(acceptedFiles) => setImageFile1(acceptedFiles[0])}>
+        {({getRootProps, getInputProps}) => (
+          <div
+              style={{
+                border: "2px dotted black",
+                padding: "5px",
+              }}
+            {...getRootProps()}>
+            <div
+                style={{
+                  height: "200px",
+                  ...backgroundStyle1,
+                }}>
+              <input {...getInputProps()} />
+            </div>
+          </div>
+        )}
+      </Dropzone>
+      <h2>画像2</h2>
+      <Dropzone onDrop={(acceptedFiles) => setImageFile2(acceptedFiles[0])}>
+        {({getRootProps, getInputProps}) => (
+          <div
+              style={{
+                border: "2px dotted black",
+                padding: "5px",
+              }}
+            {...getRootProps()}>
+            <div
+                style={{
+                  height: "200px",
+                  ...backgroundStyle2,
+                }}>
+              <input {...getInputProps()} />
+            </div>
+          </div>
+        )}
+      </Dropzone>
       <h1>結果</h1>
       <Matrix
-          image1={image1}
-          image2={image2}
+          image1={imageUrl1}
+          image2={imageUrl2}
           result1={result1}
           result2={result2}
           matrix={matrix} />

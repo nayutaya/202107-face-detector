@@ -70,7 +70,6 @@ export default function Page() {
     const embeddings1 = result1.response.faces.map((face) => face.embedding);
     const embeddings2 = result2.response.faces.map((face) => face.embedding);
     const embeddings = [].concat(embeddings1).concat(embeddings2);
-    // console.log({embeddings});
     const pairs = [];
     const base1 = 0;
     const base2 = embeddings1.length;
@@ -82,7 +81,6 @@ export default function Page() {
         });
       }
     }
-    console.log({pairs});
 
     const param = {
       method: "POST",
@@ -97,7 +95,6 @@ export default function Page() {
     fetch("/api/compare", param)
       .then((response) => response.json())
       .then((response) => {
-        // console.log({response});
         const newMatrix = [];
         for ( let i = 0; i < embeddings1.length; i++ ) {
           const row = [];
@@ -109,7 +106,6 @@ export default function Page() {
         response.pairs.forEach((pair) => {
           newMatrix[pair.index1][pair.index2 - base2] = pair.similarity;
         });
-        // console.log({newMatrix});
         setMatrix(newMatrix);
       });
   }, [result1, result2]);
@@ -190,10 +186,10 @@ export default function Page() {
               key={index}
               imageWidth={result1.response.width}
               imageHeight={result1.response.height}
+              imageUrl={image1.dataUrl}
               faceWidth={100}
               faceHeight={100}
-              dataUrl={image1.dataUrl}
-              face={face} />
+              faceBoundingBox={face.boundingBox} />
           ))}
         </div>
       )}
@@ -204,10 +200,10 @@ export default function Page() {
               key={index}
               imageWidth={result2.response.width}
               imageHeight={result2.response.height}
+              imageUrl={image2.dataUrl}
               faceWidth={100}
               faceHeight={100}
-              dataUrl={image2.dataUrl}
-              face={face} />
+              faceBoundingBox={face.boundingBox} />
           ))}
         </div>
       )}
@@ -220,10 +216,10 @@ export default function Page() {
                 <CroppedFaceImage
                   imageWidth={result2.response.width}
                   imageHeight={result2.response.height}
+                  imageUrl={image2.dataUrl}
                   faceWidth={100}
                   faceHeight={100}
-                  dataUrl={image2.dataUrl}
-                  face={face} />
+                  faceBoundingBox={face.boundingBox} />
               </td>
             ))}
           </tr>
@@ -233,10 +229,10 @@ export default function Page() {
                 <CroppedFaceImage
                   imageWidth={result1.response.width}
                   imageHeight={result1.response.height}
+                  imageUrl={image1.dataUrl}
                   faceWidth={100}
                   faceHeight={100}
-                  dataUrl={image1.dataUrl}
-                  face={face} />
+                  faceBoundingBox={face.boundingBox} />
               </td>
             {result2.response.faces.map((face, index2) => (
               <td key={index2} align="center">

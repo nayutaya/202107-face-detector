@@ -1,5 +1,5 @@
-export default function CroppedFaceImage({ imageWidth, imageHeight, dataUrl, face, faceWidth, faceHeight }) {
-  const { x1, y1, x2, y2 } = face.boundingBox;
+export default function CroppedFaceImage({ imageWidth, imageHeight, imageUrl, faceWidth, faceHeight, faceBoundingBox }) {
+  const { x1, y1, x2, y2 } = faceBoundingBox;
   return (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +12,7 @@ export default function CroppedFaceImage({ imageWidth, imageHeight, dataUrl, fac
           y={0}
           width={imageWidth}
           height={imageHeight}
-          href={dataUrl} />
+          href={imageUrl} />
     </svg>
   );
 }

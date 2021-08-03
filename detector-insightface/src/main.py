@@ -1,6 +1,10 @@
+import base64
 import datetime
 import hashlib
+import io
 
+from pydantic import BaseModel
+from typing import List
 import fastapi
 import fastapi.middleware.cors
 import insightface
@@ -8,9 +12,48 @@ import numpy as np
 import onnxruntime
 import PIL.Image
 
+
+class PairRequest(BaseModel):
+    index1: int
+    index2: int
+
+
+class CompareRequest(BaseModel):
+    embeddings: List[str]
+    pairs: List[PairRequest]
+
+
+class PairResponse(BaseModel):
+    index1: int
+    index2: int
+    similarity: float
+
+
+class CompareResponse(BaseModel):
+    embeddings: List[str]
+    pairs: List[PairResponse]
+
+
+def encode_np(array):
+    bio = io.BytesIO()
+    np.save(bio, array)
+    return base64.standard_b64encode(bio.getvalue())
+
+
+def decode_np(text):
+    bio = io.BytesIO(base64.standard_b64decode(text))
+    return np.load(bio)
+
+
+def compute_similarity(embedding1, embedding2):
+    return np.dot(embedding1, embedding2) / (
+        np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
+    )
+
+
 SERVICE = {
     "name": "detector-insightface",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "libraries": {
         "insightface": insightface.__version__,
         "onnxruntime": onnxruntime.__version__,
@@ -88,9 +131,28 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         ],
                     },
                     "attributes": {"sex": face.sex, "age": face.age},
-                    # TODO: face.embedding
+                    "embedding": encode_np(face.embedding),
                 }
                 for face in faces
             ],
         },
+    }
+
+
+@app.post("/compare", response_model=CompareResponse)
+async def post_compare(request: CompareRequest):
+    embeddings = request.embeddings
+    decoded_embeddings = [decode_np(text) for text in embeddings]
+    return {
+        "embeddings": embeddings,
+        "pairs": [
+            {
+                "index1": pair.index1,
+                "index2": pair.index2,
+                "similarity": compute_similarity(
+                    decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
+                ).astype(float),
+            }
+            for pair in request.pairs
+        ],
     }

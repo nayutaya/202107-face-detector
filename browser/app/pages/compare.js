@@ -76,9 +76,10 @@ function makeBackgroundImageStyle(imageUrl) {
 }
 
 // REF: https://stackoverflow.com/a/27263918
-function heatMapColorforValue(value){
-  var h = (1.0 - value) * 240
-  return "hsl(" + h + ", 100%, 50%)";
+function makeHeatMapColor(value) {
+  const clamped = Math.max(0.0, Math.min(1.0, value));
+  const hue = (1.0 - clamped) * 240
+  return "hsl(" + hue + ", 50%, 75%)";
 }
 
 function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
@@ -156,7 +157,7 @@ function Matrix({ imageUrl1, imageUrl2, result1, result2, matrix }) {
                         key={index2}
                         align="center"
                         style={{
-                          backgroundColor: heatMapColorforValue(matrix[index1][index2]),
+                          backgroundColor: makeHeatMapColor(matrix[index1][index2]),
                         }}>
                       {matrix[index1][index2].toFixed(2)}
                     </td>

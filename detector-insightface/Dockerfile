@@ -1,4 +1,5 @@
-FROM ubuntu:20.04
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
     build-essential \
@@ -12,8 +13,9 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/*
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
-COPY requirements1.txt ./
-RUN python3 -m pip install --requirement requirements1.txt
+ARG COMPUTING_DEVICE
+COPY requirements1_${COMPUTING_DEVICE}.txt ./
+RUN python3 -m pip install --requirement requirements1_${COMPUTING_DEVICE}.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
 COPY src/get_model.py ./src/

@@ -1,7 +1,15 @@
 version: "3"
 services:
   detector-insightface:
-    build: "detector-insightface"
+    build:
+      context: "detector-insightface"
+      args:
+        # for CPU
+        # BASE_IMAGE: "ubuntu:20.04"
+        # COMPUTING_DEVICE: "cpu"
+        # for GPU
+        BASE_IMAGE: "nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04"
+        COMPUTING_DEVICE: "gpu"
     ports:
       - "8000:8000"
     # volumes:

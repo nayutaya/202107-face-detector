@@ -1,4 +1,5 @@
-FROM ubuntu:20.04
+# FROM ubuntu:20.04
+FROM nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
     build-essential \
@@ -12,8 +13,8 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/*
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
-COPY requirements1.txt ./
-RUN python3 -m pip install --requirement requirements1.txt
+COPY requirements1_gpu.txt ./
+RUN python3 -m pip install --requirement requirements1_gpu.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
 COPY src/get_model.py ./src/

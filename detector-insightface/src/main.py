@@ -54,6 +54,7 @@ def compute_similarity(embedding1, embedding2):
 SERVICE = {
     "name": "detector-insightface",
     "version": "0.2.0",
+    "computeDevice": onnxruntime.get_device(),
     "libraries": {
         "insightface": insightface.__version__,
         "onnxruntime": onnxruntime.__version__,

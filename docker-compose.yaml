@@ -6,10 +6,10 @@ services:
       args:
         # for CPU
         # BASE_IMAGE: "ubuntu:20.04"
-        # COMPUTE_DEVICE: "cpu"
+        # COMPUTING_DEVICE: "cpu"
         # for GPU
         BASE_IMAGE: "nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04"
-        COMPUTE_DEVICE: "gpu"
+        COMPUTING_DEVICE: "gpu"
     ports:
       - "8000:8000"
     # volumes:

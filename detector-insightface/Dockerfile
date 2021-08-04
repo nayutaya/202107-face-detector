@@ -13,9 +13,9 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/*
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
-ARG COMPUTE_DEVICE
-COPY requirements1_${COMPUTE_DEVICE}.txt ./
-RUN python3 -m pip install --requirement requirements1_${COMPUTE_DEVICE}.txt
+ARG COMPUTING_DEVICE
+COPY requirements1_${COMPUTING_DEVICE}.txt ./
+RUN python3 -m pip install --requirement requirements1_${COMPUTING_DEVICE}.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
 COPY src/get_model.py ./src/

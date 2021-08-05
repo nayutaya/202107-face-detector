@@ -10,3 +10,7 @@ services:
         # for GPU
         # BASE_IMAGE: "nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04"
         # COMPUTING_DEVICE: "gpu"
+    volumes:
+      - "./video:/mnt/workspace" # DEBUG:
+    working_dir: "/mnt/workspace" # DEBUG:
+    command: "/bin/bash" # DEBUG:

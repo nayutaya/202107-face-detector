@@ -10,12 +10,12 @@ import cv2
 import insightface
 
 
-def media_thread(input_queue, output_queue):
+def read_thread(input_queue, output_queue):
     logging.info("start")
 
-    total_process_media = 0
-    total_process_frame = 0
-    total_process_time_ns = 0
+    total_file_count = 0
+    total_frame_count = 0
+    total_time_ns = 0
 
     while True:
         file_path = input_queue.get()
@@ -28,10 +28,10 @@ def media_thread(input_queue, output_queue):
             assert capture.isOpened()
 
             # for frame_index in itertools.count():
-            for frame_index in range(5):
+            for frame_index in range(20):
                 start_ns = time.perf_counter_ns()
                 result, frame = capture.read()
-                process_time_ns = time.perf_counter_ns() - start_ns
+                time_ns = time.perf_counter_ns() - start_ns
                 if not result:
                     break
 
@@ -43,24 +43,28 @@ def media_thread(input_queue, output_queue):
                     }
                 )
 
-                total_process_frame += 1
-                total_process_time_ns += process_time_ns
+                total_frame_count += 1
+                total_time_ns += time_ns
 
-            total_process_media += 1
+            total_file_count += 1
         finally:
             input_queue.task_done()
 
-    logging.info("total_process_media=%d", total_process_media)
-    logging.info("total_process_frame=%d", total_process_frame)
-    logging.info("total_process_time_ns=%d", total_process_time_ns)
+    logging.info("total_file_count=%d", total_file_count)
+    logging.info("total_frame_count=%d", total_frame_count)
+    logging.info("total_time[ms]=%d", total_time_ns / 1000 / 1000)
+    logging.info("mean_time[ms]=%f", total_time_ns / total_frame_count / 1000 / 1000)
+    logging.info(
+        "throughput/sec=%f", 1_000_000_000 / (total_time_ns / total_frame_count)
+    )
     logging.info("end")
 
 
 def detection_thread(input_queue, output_queue, face_analysis):
     logging.info("start")
 
-    total_detection_elapsed_ns = 0
-    total_detection_count = 0
+    total_count = 0
+    total_time_ns = 0
 
     while True:
         frame_info = input_queue.get()
@@ -71,7 +75,7 @@ def detection_thread(input_queue, output_queue, face_analysis):
 
             start_ns = time.perf_counter_ns()
             faces = face_analysis.get(frame_info["frame"])
-            detection_elapsed_ns = time.perf_counter_ns() - start_ns
+            time_ns = time.perf_counter_ns() - start_ns
 
             output_queue.put(
                 {
@@ -82,25 +86,26 @@ def detection_thread(input_queue, output_queue, face_analysis):
                 }
             )
 
-            total_detection_elapsed_ns += detection_elapsed_ns
-            total_detection_count += 1
+            total_count += 1
+            total_time_ns += time_ns
 
         finally:
             input_queue.task_done()
 
-    logging.info("total_detection_elapsed_ns=%d", total_detection_elapsed_ns)
-    logging.info("total_detection_count=%d", total_detection_count)
-
+    logging.info("total_count=%d", total_count)
+    logging.info("total_time[ms]=%d", total_time_ns / 1000 / 1000)
+    logging.info("mean_time[ms]=%f", total_time_ns / total_count / 1000 / 1000)
+    logging.info("throughput/sec=%f", 1_000_000_000 / (total_time_ns / total_count))
     logging.info("end")
 
 
-def start_media_workers(number_of_workers, input_queue, output_queue):
+def start_read_workers(number_of_workers, input_queue, output_queue):
     workers = []
 
     for thread_index in range(number_of_workers):
         worker = threading.Thread(
-            name="media#{}".format(thread_index),
-            target=media_thread,
+            name="read#{}".format(thread_index),
+            target=read_thread,
             daemon=True,
             kwargs={"input_queue": input_queue, "output_queue": output_queue},
         )
@@ -141,7 +146,7 @@ def main():
     file_queue.put("pixabay_76889_960x540.mp4")
 
     frame_queue = queue.Queue(maxsize=100)
-    media_workers = start_media_workers(
+    read_workers = start_read_workers(
         number_of_workers=1, input_queue=file_queue, output_queue=frame_queue
     )
 
@@ -150,9 +155,9 @@ def main():
         number_of_workers=1, input_queue=frame_queue, output_queue=detection_queue
     )
 
-    for _ in media_workers:
+    for _ in read_workers:
         file_queue.put(None)
-    for worker in media_workers:
+    for worker in read_workers:
         worker.join()
 
     for _ in detection_workers:
@@ -169,20 +174,3 @@ if __name__ == "__main__":
         level=logging.DEBUG,
     )
     main()
-
-"""
-
-print("total_read_frame_elapsed_ns:", total_read_frame_elapsed_ns)
-print("total_read_frame_count:", total_read_frame_count)
-mean_read_frame_elapsed_ns = total_read_frame_elapsed_ns / total_read_frame_count
-print("mean_read_frame_elapsed_ms:", mean_read_frame_elapsed_ns / 1000 / 1000)
-read_frame_throughput_in_sec = 1_000_000_000 / mean_read_frame_elapsed_ns
-print("read_frame_throughput_in_sec:", read_frame_throughput_in_sec)
-
-print("total_detection_elapsed_ns:", total_detection_elapsed_ns)
-print("total_detection_count:", total_detection_count)
-mean_detection_elapsed_ns = total_detection_elapsed_ns / total_detection_count
-print("mean_detection_elapsed_ms:", mean_detection_elapsed_ns / 1000 / 1000)
-detection_throughput_in_sec = 1_000_000_000 / mean_detection_elapsed_ns
-print("detection_throughput_in_sec:", detection_throughput_in_sec)
-"""

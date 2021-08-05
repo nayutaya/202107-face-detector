@@ -5,6 +5,9 @@ import time
 
 import cv2
 import insightface
+import onnxruntime
+
+assert onnxruntime.get_device() == "CPU"
 
 face_analysis = insightface.app.FaceAnalysis()
 face_analysis.prepare(ctx_id=0, det_size=(640, 640))
@@ -18,7 +21,7 @@ total_detection_elapsed_ns = 0
 total_detection_count = 0
 
 # for frame_index in itertools.count():
-for frame_index in range(5):
+for frame_index in range(20):
     start_ns = time.perf_counter_ns()
     result, frame = capture.read()
     read_frame_elapsed_ns = time.perf_counter_ns() - start_ns

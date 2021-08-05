@@ -8,6 +8,7 @@ import time
 
 import cv2
 import insightface
+import onnxruntime
 
 
 def read_thread(input_queue, output_queue):
@@ -60,8 +61,11 @@ def read_thread(input_queue, output_queue):
     logging.info("end")
 
 
-def detection_thread(input_queue, output_queue, face_analysis):
+def detection_thread(input_queue, output_queue, thread_index):
     logging.info("start")
+
+    face_analysis = insightface.app.FaceAnalysis()
+    face_analysis.prepare(ctx_id=thread_index, det_size=(640, 640))
 
     total_count = 0
     total_time_ns = 0
@@ -118,9 +122,6 @@ def start_read_workers(number_of_workers, input_queue, output_queue):
 def start_detection_workers(number_of_workers, input_queue, output_queue):
     workers = []
 
-    face_analysis = insightface.app.FaceAnalysis()
-    face_analysis.prepare(ctx_id=0, det_size=(640, 640))
-
     for thread_index in range(number_of_workers):
         worker = threading.Thread(
             name="detection#{}".format(thread_index),
@@ -129,7 +130,7 @@ def start_detection_workers(number_of_workers, input_queue, output_queue):
             kwargs={
                 "input_queue": input_queue,
                 "output_queue": output_queue,
-                "face_analysis": face_analysis,
+                "thread_index": thread_index,
             },
         )
         worker.start()
@@ -142,6 +143,8 @@ def main():
     threading.current_thread().name = "main"
     logging.info("start")
 
+    assert onnxruntime.get_device() == "CPU"
+
     file_queue = queue.Queue()
     file_queue.put("pixabay_76889_960x540.mp4")
 
@@ -152,7 +155,7 @@ def main():
 
     detection_queue = queue.Queue()
     detection_workers = start_detection_workers(
-        number_of_workers=1, input_queue=frame_queue, output_queue=detection_queue
+        number_of_workers=2, input_queue=frame_queue, output_queue=detection_queue
     )
 
     for _ in read_workers:

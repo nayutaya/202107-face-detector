@@ -58,7 +58,7 @@ async function makeMatrix(embeddings1, embeddings2) {
   }
 
   const response = await compare({embeddings, pairs});
-  response.pairs.forEach((pair) => {
+  response.response.pairs.forEach((pair) => {
     matrix[pair.index1][pair.index2 - embeddings1.length] = pair.similarity;
   });
 

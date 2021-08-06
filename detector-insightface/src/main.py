@@ -94,14 +94,27 @@ class CompareRequest(BaseModel):
 
 
 class CompareResponse(BaseModel):
-    class Pair(BaseModel):
-        index1: int
-        index2: int
-        similarity: float
+    class Request(BaseModel):
+        class Pair(BaseModel):
+            index1: int
+            index2: int
 
-    comparisonTimeInNanoseconds: int
-    embeddings: List[str]
-    pairs: List[Pair]
+        embeddings: List[str]
+        pairs: List[Pair]
+
+    class Response(BaseModel):
+        class Pair(BaseModel):
+            index1: int
+            index2: int
+            similarity: float
+
+        comparisonTimeInNanoseconds: int
+        pairs: List[Pair]
+
+    service: ServiceResponse
+    time: int
+    request: Request
+    response: Response
 
 
 def encode_np(array):
@@ -228,10 +241,18 @@ async def post_compare(request: CompareRequest):
     process_time_ns = time.perf_counter_ns() - start_time_ns
 
     return {
-        "comparisonTimeInNanoseconds": process_time_ns,
-        "embeddings": embeddings,
-        "pairs": [
-            {"index1": pair.index1, "index2": pair.index2, "similarity": similarity,}
-            for pair, similarity in zip(request.pairs, similarities)
-        ],
+        "service": SERVICE,
+        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "request": {"embeddings": embeddings, "pairs": request.pairs,},
+        "response": {
+            "comparisonTimeInNanoseconds": process_time_ns,
+            "pairs": [
+                {
+                    "index1": pair.index1,
+                    "index2": pair.index2,
+                    "similarity": similarity,
+                }
+                for pair, similarity in zip(request.pairs, similarities)
+            ],
+        },
     }

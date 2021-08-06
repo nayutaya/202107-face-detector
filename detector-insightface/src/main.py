@@ -2,6 +2,7 @@ import base64
 import datetime
 import hashlib
 import io
+import time
 
 from pydantic import BaseModel
 from typing import List
@@ -88,7 +89,9 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     image = np.array(image)
     image = image[:, :, [2, 1, 0]]  # RGB to BGR
 
+    start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
+    detection_time_ns = time.perf_counter_ns() - start_time_ns
 
     file.file.seek(0)
     sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
@@ -101,6 +104,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
         "response": {
+            "detectionTimeInNanoseconds": detection_time_ns,
             "width": image.shape[1],
             "height": image.shape[0],
             "numberOfFaces": len(faces),

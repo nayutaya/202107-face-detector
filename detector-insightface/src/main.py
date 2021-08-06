@@ -2,9 +2,8 @@ import base64
 import datetime
 import hashlib
 import io
+import time
 
-from pydantic import BaseModel
-from typing import List
 import fastapi
 import fastapi.middleware.cors
 import insightface
@@ -12,26 +11,7 @@ import numpy as np
 import onnxruntime
 import PIL.Image
 
-
-class PairRequest(BaseModel):
-    index1: int
-    index2: int
-
-
-class CompareRequest(BaseModel):
-    embeddings: List[str]
-    pairs: List[PairRequest]
-
-
-class PairResponse(BaseModel):
-    index1: int
-    index2: int
-    similarity: float
-
-
-class CompareResponse(BaseModel):
-    embeddings: List[str]
-    pairs: List[PairResponse]
+import mytypes
 
 
 def encode_np(array):
@@ -51,9 +31,13 @@ def compute_similarity(embedding1, embedding2):
     )
 
 
+def round(value, factor):
+    return int(value.astype(float) * factor) / factor
+
+
 SERVICE = {
     "name": "detector-insightface",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "computingDevice": onnxruntime.get_device(),
     "libraries": {
         "insightface": insightface.__version__,
@@ -73,7 +57,7 @@ face_analysis = insightface.app.FaceAnalysis()
 face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 
 
-@app.get("/")
+@app.get("/", response_model=mytypes.RootResponse)
 async def get_root():
     return {
         "service": SERVICE,
@@ -81,14 +65,19 @@ async def get_root():
     }
 
 
-@app.post("/detect")
+@app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
+    # TODO: PNG形式に対応する。
+    # TODO: NumPy形式に対応する。
+    # TODO: OpenCVを使って画像を読み込むように変更する。（回転情報に対応するため）
     assert file.content_type == "image/jpeg"
     image = PIL.Image.open(file.file).convert("RGB")
     image = np.array(image)
     image = image[:, :, [2, 1, 0]]  # RGB to BGR
 
+    start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
+    process_time_ns = time.perf_counter_ns() - start_time_ns
 
     file.file.seek(0)
     sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
@@ -101,36 +90,35 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
         "response": {
+            "detectionTimeInNanoseconds": process_time_ns,
             "width": image.shape[1],
             "height": image.shape[0],
             "numberOfFaces": len(faces),
             "faces": [
                 {
-                    "score": face.det_score.astype(float),
+                    "score": round(face.det_score, 1000),
                     "boundingBox": {
-                        "x1": face.bbox[0].astype(float),
-                        "y1": face.bbox[1].astype(float),
-                        "x2": face.bbox[2].astype(float),
-                        "y2": face.bbox[3].astype(float),
+                        "x1": round(face.bbox[0], 100),
+                        "y1": round(face.bbox[1], 100),
+                        "x2": round(face.bbox[2], 100),
+                        "y2": round(face.bbox[3], 100),
                     },
                     "keyPoints": [
-                        {"x": xy[0].astype(float), "y": xy[1].astype(float)}
+                        {"x": round(xy[0], 100), "y": round(xy[1], 100)}
                         for xy in face.kps
                     ],
-                    "landmarks": {
-                        "3d_68": [
-                            {
-                                "x": xyz[0].astype(float),
-                                "y": xyz[1].astype(float),
-                                "z": xyz[2].astype(float),
-                            }
-                            for xyz in face.landmark_3d_68
-                        ],
-                        "2d_106": [
-                            {"x": xy[0].astype(float), "y": xy[1].astype(float)}
-                            for xy in face.landmark_2d_106
-                        ],
-                    },
+                    "landmarks3d68": [
+                        {
+                            "x": round(xyz[0], 100),
+                            "y": round(xyz[1], 100),
+                            "z": round(xyz[2], 100),
+                        }
+                        for xyz in face.landmark_3d_68
+                    ],
+                    "landmarks2d106": [
+                        {"x": round(xy[0], 100), "y": round(xy[1], 100),}
+                        for xy in face.landmark_2d_106
+                    ],
                     "attributes": {"sex": face.sex, "age": face.age},
                     "embedding": encode_np(face.embedding),
                 }
@@ -140,20 +128,31 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     }
 
 
-@app.post("/compare", response_model=CompareResponse)
-async def post_compare(request: CompareRequest):
-    embeddings = request.embeddings
-    decoded_embeddings = [decode_np(text) for text in embeddings]
+@app.post("/compare", response_model=mytypes.CompareResponse)
+async def post_compare(request: mytypes.CompareRequest):
+    start_time_ns = time.perf_counter_ns()
+    decoded_embeddings = [decode_np(text) for text in request.embeddings]
+    similarities = [
+        compute_similarity(
+            decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
+        )
+        for pair in request.pairs
+    ]
+    process_time_ns = time.perf_counter_ns() - start_time_ns
+
     return {
-        "embeddings": embeddings,
-        "pairs": [
-            {
-                "index1": pair.index1,
-                "index2": pair.index2,
-                "similarity": compute_similarity(
-                    decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
-                ).astype(float),
-            }
-            for pair in request.pairs
-        ],
+        "service": SERVICE,
+        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "request": {"embeddings": request.embeddings, "pairs": request.pairs,},
+        "response": {
+            "comparisonTimeInNanoseconds": process_time_ns,
+            "pairs": [
+                {
+                    "index1": pair.index1,
+                    "index2": pair.index2,
+                    "similarity": round(similarity, 1000),
+                }
+                for pair, similarity in zip(request.pairs, similarities)
+            ],
+        },
     }

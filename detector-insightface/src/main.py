@@ -31,6 +31,7 @@ class PairResponse(BaseModel):
 
 
 class CompareResponse(BaseModel):
+    comparisonTimeInNanoseconds: int
     embeddings: List[str]
     pairs: List[PairResponse]
 
@@ -91,7 +92,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 
     start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
-    detection_time_ns = time.perf_counter_ns() - start_time_ns
+    process_time_ns = time.perf_counter_ns() - start_time_ns
 
     file.file.seek(0)
     sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
@@ -104,7 +105,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
         "response": {
-            "detectionTimeInNanoseconds": detection_time_ns,
+            "detectionTimeInNanoseconds": process_time_ns,
             "width": image.shape[1],
             "height": image.shape[0],
             "numberOfFaces": len(faces),
@@ -147,17 +148,22 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 @app.post("/compare", response_model=CompareResponse)
 async def post_compare(request: CompareRequest):
     embeddings = request.embeddings
+
+    start_time_ns = time.perf_counter_ns()
     decoded_embeddings = [decode_np(text) for text in embeddings]
+    similarities = [
+        compute_similarity(
+            decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
+        ).astype(float)
+        for pair in request.pairs
+    ]
+    process_time_ns = time.perf_counter_ns() - start_time_ns
+
     return {
+        "comparisonTimeInNanoseconds": process_time_ns,
         "embeddings": embeddings,
         "pairs": [
-            {
-                "index1": pair.index1,
-                "index2": pair.index2,
-                "similarity": compute_similarity(
-                    decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
-                ).astype(float),
-            }
-            for pair in request.pairs
+            {"index1": pair.index1, "index2": pair.index2, "similarity": similarity,}
+            for pair, similarity in zip(request.pairs, similarities)
         ],
     }

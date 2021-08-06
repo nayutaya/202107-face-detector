@@ -67,6 +67,9 @@ async def get_root():
 
 @app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
+    # TODO: PNG形式に対応する。
+    # TODO: NumPy形式に対応する。
+    # TODO: OpenCVを使って画像を読み込むように変更する。（回転情報に対応するため）
     assert file.content_type == "image/jpeg"
     image = PIL.Image.open(file.file).convert("RGB")
     image = np.array(image)

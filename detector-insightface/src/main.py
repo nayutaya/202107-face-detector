@@ -26,6 +26,17 @@ class RootResponse(BaseModel):
     time: int
 
 
+class Point2D(BaseModel):
+    x: float
+    y: float
+
+
+class Point3D(BaseModel):
+    x: float
+    y: float
+    z: float
+
+
 class DetectResponse(BaseModel):
     class Request(BaseModel):
         class File(BaseModel):
@@ -43,15 +54,22 @@ class DetectResponse(BaseModel):
                 x2: float
                 y2: float
 
-            class Point2D(BaseModel):
-                x: float
-                y: float
+            class Landmarks(BaseModel):
+                class Config:
+                    fields = {"a3d_68": "3d_68", "a2d_106": "2d_106"}
+
+                a3d_68: List[Point3D]
+                a2d_106: List[Point2D]
+
+            class Attributes(BaseModel):
+                sex: str
+                age: int
 
             score: float
             boundingBox: BoundingBox
             keyPoints: List[Point2D]
-            landmarks: Dict[str, List[Dict[str, float]]]
-            attributes: Dict[str, Any]
+            landmarks: Landmarks
+            attributes: Attributes
             embedding: str
 
         detectionTimeInNanoseconds: int

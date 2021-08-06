@@ -37,7 +37,7 @@ def round(value, factor):
 
 SERVICE = {
     "name": "detector-insightface",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "computingDevice": onnxruntime.get_device(),
     "libraries": {
         "insightface": insightface.__version__,

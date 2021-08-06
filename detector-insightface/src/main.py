@@ -5,13 +5,25 @@ import io
 import time
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 import fastapi
 import fastapi.middleware.cors
 import insightface
 import numpy as np
 import onnxruntime
 import PIL.Image
+
+
+class ServiceResponse(BaseModel):
+    name: str
+    version: str
+    computingDevice: str
+    libraries: Dict[str, str]
+
+
+class RootResponse(BaseModel):
+    service: ServiceResponse
+    time: int
 
 
 class PairRequest(BaseModel):
@@ -75,7 +87,7 @@ face_analysis = insightface.app.FaceAnalysis()
 face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 
 
-@app.get("/")
+@app.get("/", response_model=RootResponse)
 async def get_root():
     return {
         "service": SERVICE,

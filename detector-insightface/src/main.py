@@ -5,7 +5,7 @@ import io
 import time
 
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Any
 import fastapi
 import fastapi.middleware.cors
 import insightface
@@ -24,6 +24,36 @@ class ServiceResponse(BaseModel):
 class RootResponse(BaseModel):
     service: ServiceResponse
     time: int
+
+
+class DetectResponse(BaseModel):
+    class RequestResponse(BaseModel):
+        class FileResponse(BaseModel):
+            name: str
+            size: int
+            sha1: str
+
+        file: FileResponse
+
+    class ResponseResponse(BaseModel):
+        class FaceResponse(BaseModel):
+            score: float
+            boundingBox: Dict[str, float]
+            keyPoints: List[Dict[str, float]]
+            landmarks: Dict[str, List[Dict[str, float]]]
+            attributes: Dict[str, Any]
+            embedding: str
+
+        detectionTimeInNanoseconds: int
+        width: int
+        height: int
+        numberOfFaces: int
+        faces: List[FaceResponse]
+
+    service: ServiceResponse
+    time: int
+    request: RequestResponse
+    response: ResponseResponse
 
 
 class PairRequest(BaseModel):
@@ -95,7 +125,7 @@ async def get_root():
     }
 
 
-@app.post("/detect")
+@app.post("/detect", response_model=DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     assert file.content_type == "image/jpeg"
     image = PIL.Image.open(file.file).convert("RGB")

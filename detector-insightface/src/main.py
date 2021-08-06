@@ -27,19 +27,29 @@ class RootResponse(BaseModel):
 
 
 class DetectResponse(BaseModel):
-    class RequestResponse(BaseModel):
-        class FileResponse(BaseModel):
+    class Request(BaseModel):
+        class File(BaseModel):
             name: str
             size: int
             sha1: str
 
-        file: FileResponse
+        file: File
 
-    class ResponseResponse(BaseModel):
-        class FaceResponse(BaseModel):
+    class Response(BaseModel):
+        class Face(BaseModel):
+            class BoundingBox(BaseModel):
+                x1: float
+                y1: float
+                x2: float
+                y2: float
+
+            class Point2D(BaseModel):
+                x: float
+                y: float
+
             score: float
-            boundingBox: Dict[str, float]
-            keyPoints: List[Dict[str, float]]
+            boundingBox: BoundingBox
+            keyPoints: List[Point2D]
             landmarks: Dict[str, List[Dict[str, float]]]
             attributes: Dict[str, Any]
             embedding: str
@@ -48,12 +58,12 @@ class DetectResponse(BaseModel):
         width: int
         height: int
         numberOfFaces: int
-        faces: List[FaceResponse]
+        faces: List[Face]
 
     service: ServiceResponse
     time: int
-    request: RequestResponse
-    response: ResponseResponse
+    request: Request
+    response: Response
 
 
 class PairRequest(BaseModel):

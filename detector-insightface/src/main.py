@@ -4,8 +4,6 @@ import hashlib
 import io
 import time
 
-from pydantic import BaseModel
-from typing import List, Dict, Any
 import fastapi
 import fastapi.middleware.cors
 import insightface
@@ -13,108 +11,7 @@ import numpy as np
 import onnxruntime
 import PIL.Image
 
-
-class ServiceResponse(BaseModel):
-    name: str
-    version: str
-    computingDevice: str
-    libraries: Dict[str, str]
-
-
-class RootResponse(BaseModel):
-    service: ServiceResponse
-    time: int
-
-
-class Point2D(BaseModel):
-    x: float
-    y: float
-
-
-class Point3D(BaseModel):
-    x: float
-    y: float
-    z: float
-
-
-class DetectResponse(BaseModel):
-    class Request(BaseModel):
-        class File(BaseModel):
-            name: str
-            size: int
-            sha1: str
-
-        file: File
-
-    class Response(BaseModel):
-        class Face(BaseModel):
-            class BoundingBox(BaseModel):
-                x1: float
-                y1: float
-                x2: float
-                y2: float
-
-            class Landmarks(BaseModel):
-                class Config:
-                    fields = {"a3d_68": "3d_68", "a2d_106": "2d_106"}
-
-                a3d_68: List[Point3D]
-                a2d_106: List[Point2D]
-
-            class Attributes(BaseModel):
-                sex: str
-                age: int
-
-            score: float
-            boundingBox: BoundingBox
-            keyPoints: List[Point2D]
-            landmarks: Landmarks
-            attributes: Attributes
-            embedding: str
-
-        detectionTimeInNanoseconds: int
-        width: int
-        height: int
-        numberOfFaces: int
-        faces: List[Face]
-
-    service: ServiceResponse
-    time: int
-    request: Request
-    response: Response
-
-
-class CompareRequest(BaseModel):
-    class Pair(BaseModel):
-        index1: int
-        index2: int
-
-    embeddings: List[str]
-    pairs: List[Pair]
-
-
-class CompareResponse(BaseModel):
-    class Request(BaseModel):
-        class Pair(BaseModel):
-            index1: int
-            index2: int
-
-        embeddings: List[str]
-        pairs: List[Pair]
-
-    class Response(BaseModel):
-        class Pair(BaseModel):
-            index1: int
-            index2: int
-            similarity: float
-
-        comparisonTimeInNanoseconds: int
-        pairs: List[Pair]
-
-    service: ServiceResponse
-    time: int
-    request: Request
-    response: Response
+import mytypes
 
 
 def encode_np(array):
@@ -160,7 +57,7 @@ face_analysis = insightface.app.FaceAnalysis()
 face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 
 
-@app.get("/", response_model=RootResponse)
+@app.get("/", response_model=mytypes.RootResponse)
 async def get_root():
     return {
         "service": SERVICE,
@@ -168,7 +65,7 @@ async def get_root():
     }
 
 
-@app.post("/detect", response_model=DetectResponse)
+@app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     assert file.content_type == "image/jpeg"
     image = PIL.Image.open(file.file).convert("RGB")
@@ -230,8 +127,8 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     }
 
 
-@app.post("/compare", response_model=CompareResponse)
-async def post_compare(request: CompareRequest):
+@app.post("/compare", response_model=mytypes.CompareResponse)
+async def post_compare(request: mytypes.CompareRequest):
     start_time_ns = time.perf_counter_ns()
     decoded_embeddings = [decode_np(text) for text in request.embeddings]
     similarities = [

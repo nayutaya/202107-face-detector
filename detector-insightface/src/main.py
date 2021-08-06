@@ -84,26 +84,24 @@ class DetectResponse(BaseModel):
     response: Response
 
 
-class PairRequest(BaseModel):
-    index1: int
-    index2: int
-
-
 class CompareRequest(BaseModel):
+    class Pair(BaseModel):
+        index1: int
+        index2: int
+
     embeddings: List[str]
-    pairs: List[PairRequest]
-
-
-class PairResponse(BaseModel):
-    index1: int
-    index2: int
-    similarity: float
+    pairs: List[Pair]
 
 
 class CompareResponse(BaseModel):
+    class Pair(BaseModel):
+        index1: int
+        index2: int
+        similarity: float
+
     comparisonTimeInNanoseconds: int
     embeddings: List[str]
-    pairs: List[PairResponse]
+    pairs: List[Pair]
 
 
 def encode_np(array):

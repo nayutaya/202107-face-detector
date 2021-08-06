@@ -134,6 +134,10 @@ def compute_similarity(embedding1, embedding2):
     )
 
 
+def round(value, factor):
+    return int(value.astype(float) * factor) / factor
+
+
 SERVICE = {
     "name": "detector-insightface",
     "version": "0.3.0",
@@ -192,28 +196,28 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
             "numberOfFaces": len(faces),
             "faces": [
                 {
-                    "score": face.det_score.astype(float),
+                    "score": round(face.det_score, 1000),
                     "boundingBox": {
-                        "x1": face.bbox[0].astype(float),
-                        "y1": face.bbox[1].astype(float),
-                        "x2": face.bbox[2].astype(float),
-                        "y2": face.bbox[3].astype(float),
+                        "x1": round(face.bbox[0], 100),
+                        "y1": round(face.bbox[1], 100),
+                        "x2": round(face.bbox[2], 100),
+                        "y2": round(face.bbox[3], 100),
                     },
                     "keyPoints": [
-                        {"x": xy[0].astype(float), "y": xy[1].astype(float)}
+                        {"x": round(xy[0], 100), "y": round(xy[1], 100)}
                         for xy in face.kps
                     ],
                     "landmarks": {
                         "3d_68": [
                             {
-                                "x": xyz[0].astype(float),
-                                "y": xyz[1].astype(float),
-                                "z": xyz[2].astype(float),
+                                "x": round(xyz[0], 100),
+                                "y": round(xyz[1], 100),
+                                "z": round(xyz[2], 100),
                             }
                             for xyz in face.landmark_3d_68
                         ],
                         "2d_106": [
-                            {"x": xy[0].astype(float), "y": xy[1].astype(float)}
+                            {"x": round(xy[0], 100), "y": round(xy[1], 100),}
                             for xy in face.landmark_2d_106
                         ],
                     },
@@ -228,14 +232,12 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 
 @app.post("/compare", response_model=CompareResponse)
 async def post_compare(request: CompareRequest):
-    embeddings = request.embeddings
-
     start_time_ns = time.perf_counter_ns()
-    decoded_embeddings = [decode_np(text) for text in embeddings]
+    decoded_embeddings = [decode_np(text) for text in request.embeddings]
     similarities = [
         compute_similarity(
             decoded_embeddings[pair.index1], decoded_embeddings[pair.index2]
-        ).astype(float)
+        )
         for pair in request.pairs
     ]
     process_time_ns = time.perf_counter_ns() - start_time_ns
@@ -243,14 +245,14 @@ async def post_compare(request: CompareRequest):
     return {
         "service": SERVICE,
         "time": int(datetime.datetime.now().timestamp() * 1000),
-        "request": {"embeddings": embeddings, "pairs": request.pairs,},
+        "request": {"embeddings": request.embeddings, "pairs": request.pairs,},
         "response": {
             "comparisonTimeInNanoseconds": process_time_ns,
             "pairs": [
                 {
                     "index1": pair.index1,
                     "index2": pair.index2,
-                    "similarity": similarity,
+                    "similarity": round(similarity, 1000),
                 }
                 for pair, similarity in zip(request.pairs, similarities)
             ],

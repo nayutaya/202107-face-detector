@@ -42,13 +42,6 @@ class DetectResponse(BaseModel):
                 x2: float
                 y2: float
 
-            class Landmarks(BaseModel):
-                class Config:
-                    fields = {"a3d_68": "3d_68", "a2d_106": "2d_106"}
-
-                a3d_68: List[Point3D]
-                a2d_106: List[Point2D]
-
             class Attributes(BaseModel):
                 sex: str
                 age: int
@@ -56,7 +49,8 @@ class DetectResponse(BaseModel):
             score: float
             boundingBox: BoundingBox
             keyPoints: List[Point2D]
-            landmarks: Landmarks
+            landmarks3d68: List[Point3D]
+            landmarks2d106: List[Point2D]
             attributes: Attributes
             embedding: str
 

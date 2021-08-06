@@ -104,20 +104,18 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         {"x": round(xy[0], 100), "y": round(xy[1], 100)}
                         for xy in face.kps
                     ],
-                    "landmarks": {
-                        "3d_68": [
-                            {
-                                "x": round(xyz[0], 100),
-                                "y": round(xyz[1], 100),
-                                "z": round(xyz[2], 100),
-                            }
-                            for xyz in face.landmark_3d_68
-                        ],
-                        "2d_106": [
-                            {"x": round(xy[0], 100), "y": round(xy[1], 100),}
-                            for xy in face.landmark_2d_106
-                        ],
-                    },
+                    "landmarks3d68": [
+                        {
+                            "x": round(xyz[0], 100),
+                            "y": round(xyz[1], 100),
+                            "z": round(xyz[2], 100),
+                        }
+                        for xyz in face.landmark_3d_68
+                    ],
+                    "landmarks2d106": [
+                        {"x": round(xy[0], 100), "y": round(xy[1], 100),}
+                        for xy in face.landmark_2d_106
+                    ],
                     "attributes": {"sex": face.sex, "age": face.age},
                     "embedding": encode_np(face.embedding),
                 }

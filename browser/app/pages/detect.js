@@ -145,12 +145,12 @@ function Face({ face, color, shows }) {
       }
       {!shows.landmarks2d106 ? null :
         <KeyPoints
-            points={face.landmarks["2d_106"]}
+            points={face.landmarks2d106}
             color={"#CC0000"} />
       }
       {!shows.landmarks3d68 ? null :
         <KeyPoints
-            points={face.landmarks["3d_68"]}
+            points={face.landmarks3d68}
             color={"#0000CC"} />
       }
       {!shows.keyPoints ? null :

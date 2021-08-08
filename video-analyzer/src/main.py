@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import hashlib
+import io
 import pathlib
 import sys
 
 import cv2
+import numpy as np
 
 video_path = pathlib.Path(sys.argv[1])
 
@@ -18,3 +20,12 @@ print("CAP_PROP_FRAME_WIDTH:", capture.get(cv2.CAP_PROP_FRAME_WIDTH))
 print("CAP_PROP_FRAME_HEIGHT", capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 print("CAP_PROP_FPS", capture.get(cv2.CAP_PROP_FPS))
 print("CAP_PROP_FRAME_COUNT", capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+result, image = capture.read()
+print(result)
+print(image.dtype)
+print(image.shape)
+
+bio = io.BytesIO()
+np.save(bio, image)
+frame_bin = bio.getvalue()

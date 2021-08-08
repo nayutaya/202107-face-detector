@@ -115,7 +115,10 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         for xyz in face.landmark_3d_68
                     ],
                     "landmarks2d106": [
-                        {"x": round(xy[0], 100), "y": round(xy[1], 100),}
+                        {
+                            "x": round(xy[0], 100),
+                            "y": round(xy[1], 100),
+                        }
                         for xy in face.landmark_2d_106
                     ],
                     "attributes": {"sex": face.sex, "age": face.age},
@@ -142,7 +145,10 @@ async def post_compare(request: mytypes.CompareRequest):
     return {
         "service": SERVICE,
         "time": int(datetime.datetime.now().timestamp() * 1000),
-        "request": {"embeddings": request.embeddings, "pairs": request.pairs,},
+        "request": {
+            "embeddings": request.embeddings,
+            "pairs": request.pairs,
+        },
         "response": {
             "comparisonTimeInNanoseconds": process_time_ns,
             "pairs": [

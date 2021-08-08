@@ -12,17 +12,18 @@ services:
         COMPUTING_DEVICE: "gpu"
     ports:
       - "8000:8000"
-    # volumes:
-      # - "./detector-insightface:/mnt/workspace" # DEBUG:
-    # working_dir: "/mnt/workspace" # DEBUG:
+    volumes:
+      - "./detector-insightface:/mnt/workspace" # DEBUG:
+    working_dir: "/mnt/workspace" # DEBUG:
     # command: "/bin/bash" # DEBUG:
-    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
   browser:
     build: "browser"
     ports:
       - "8001:3000"
     environment:
-      DETECTOR_BASE_URL: http://detector-insightface:8000
+      DETECTOR_BASE_URL: http://gpu-2.local:8000
+      # DETECTOR_BASE_URL: http://detector-insightface:8000
     # volumes:
       # - "./browser:/mnt/workspace" # DEBUG:
     # working_dir: "/mnt/workspace/app" # DEBUG:

@@ -4,12 +4,12 @@ import hashlib
 import io
 import time
 
+import cv2
 import fastapi
 import fastapi.middleware.cors
 import insightface
 import numpy as np
 import onnxruntime
-import PIL.Image
 
 import mytypes
 
@@ -40,6 +40,7 @@ SERVICE = {
     "version": "0.4.0",
     "computingDevice": onnxruntime.get_device(),
     "libraries": {
+        "cv2": cv2.__version__,
         "insightface": insightface.__version__,
         "onnxruntime": onnxruntime.__version__,
     },
@@ -69,19 +70,17 @@ async def get_root():
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     # TODO: PNG形式に対応する。
     # TODO: NumPy形式に対応する。
-    # TODO: OpenCVを使って画像を読み込むように変更する。（回転情報に対応するため）
     assert file.content_type == "image/jpeg"
-    image = PIL.Image.open(file.file).convert("RGB")
-    image = np.array(image)
-    image = image[:, :, [2, 1, 0]]  # RGB to BGR
+
+    image_bin = file.file.read()
+    sha1_hash = hashlib.sha1(image_bin).hexdigest()
+    file_size = len(image_bin)
+    image_array = np.asarray(bytearray(image_bin), dtype=np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
     start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
     process_time_ns = time.perf_counter_ns() - start_time_ns
-
-    file.file.seek(0)
-    sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
-    file_size = file.file.tell()
 
     return {
         "service": SERVICE,

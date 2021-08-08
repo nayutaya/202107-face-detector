@@ -2,6 +2,7 @@
 
 import hashlib
 import io
+import itertools
 import json
 import logging
 import pathlib
@@ -47,8 +48,7 @@ def read_thread(video_file_path, video_capture, output_queue):
     total_count = 0
     total_time_ns = 0
 
-    # for frame_index in itertools.count():
-    for frame_index in range(10):
+    for frame_index in itertools.count():
         start_ns = time.perf_counter_ns()
         result, frame = video_capture.read()
         time_ns = time.perf_counter_ns() - start_ns
@@ -219,7 +219,10 @@ def main(video_file_path, output_file_path):
 
     video_file_path = pathlib.Path(video_file_path)
     output_file_path = pathlib.Path(output_file_path)
-    detector_base_urls = ["http://detector-insightface:8000"]
+    detector_base_urls = [
+        "http://detector-insightface:8000",
+        "http://detector-insightface:8000",
+    ]
 
     video_capture = cv2.VideoCapture(str(video_file_path))
     assert video_capture.isOpened()

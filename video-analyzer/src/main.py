@@ -6,7 +6,6 @@ import json
 import logging
 import pathlib
 import queue
-import sys
 import threading
 import time
 
@@ -91,11 +90,10 @@ def detection_thread(input_queue, output_queue, detector_base_url):
 
             start_ns = time.perf_counter_ns()
 
-            frame_bin = dump_numpy(frame_info["frame"])
             files = {
                 "file": (
                     frame_info["video_file_path"].name,
-                    frame_bin,
+                    dump_numpy(frame_info["frame"]),
                     "application/octet-stream",
                 ),
             }
@@ -163,16 +161,12 @@ def write_thread(input_queue, output_file_path, video_meta):
     logging.info("end")
 
 
-def start_read_worker(video_file_path, video_capture, output_queue):
+def start_read_worker(**kwargs):
     worker = threading.Thread(
         name="read",
         target=read_thread,
         daemon=True,
-        kwargs={
-            "video_file_path": video_file_path,
-            "video_capture": video_capture,
-            "output_queue": output_queue,
-        },
+        kwargs=kwargs,
     )
     worker.start()
     return worker
@@ -198,16 +192,12 @@ def start_detection_workers(detector_base_urls, input_queue, output_queue):
     return workers
 
 
-def start_write_worker(input_queue, output_file_path, video_meta):
+def start_write_worker(**kwargs):
     worker = threading.Thread(
         name="write",
         target=write_thread,
         daemon=True,
-        kwargs={
-            "input_queue": input_queue,
-            "output_file_path": output_file_path,
-            "video_meta": video_meta,
-        },
+        kwargs=kwargs,
     )
     worker.start()
     return worker
@@ -236,17 +226,18 @@ def main(video_file_path, output_file_path):
     video_meta = make_video_meta(video_file_path, video_capture)
 
     frame_queue = queue.Queue(maxsize=10)
+    detection_queue = queue.Queue()
+
     read_worker = start_read_worker(
         video_file_path=video_file_path,
         video_capture=video_capture,
         output_queue=frame_queue,
     )
-
-    detection_queue = queue.Queue()
     detection_workers = start_detection_workers(
-        detector_base_urls, input_queue=frame_queue, output_queue=detection_queue
+        detector_base_urls=detector_base_urls,
+        input_queue=frame_queue,
+        output_queue=detection_queue,
     )
-
     write_worker = start_write_worker(
         input_queue=detection_queue,
         output_file_path=output_file_path,

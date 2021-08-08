@@ -8,18 +8,25 @@ import sys
 import cv2
 import numpy as np
 
+def calc_sha1_hash(path):
+  with path.open("rb") as file:
+      return hashlib.sha1(file.read()).hexdigest()
+
 video_path = pathlib.Path(sys.argv[1])
 
-with video_path.open("rb") as file:
-    sha1_hash = hashlib.sha1(file.read()).hexdigest()
-    print(sha1_hash)
+sha1_hash = calc_sha1_hash(video_path)
 
 capture = cv2.VideoCapture(str(video_path))
 assert capture.isOpened()
-print("CAP_PROP_FRAME_WIDTH:", capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-print("CAP_PROP_FRAME_HEIGHT", capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-print("CAP_PROP_FPS", capture.get(cv2.CAP_PROP_FPS))
-print("CAP_PROP_FRAME_COUNT", capture.get(cv2.CAP_PROP_FRAME_COUNT))
+meta = {
+  "sha1": sha1_hash,
+  "size": video_path.stat().st_size,
+  "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+  "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+  "fps": capture.get(cv2.CAP_PROP_FPS),
+  "numberOfFrames": int(capture.get(cv2.CAP_PROP_FRAME_COUNT)),
+}
+print(meta)
 
 result, image = capture.read()
 print(result)

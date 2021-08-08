@@ -128,6 +128,55 @@ def detection_thread(input_queue, output_queue, detector_base_url):
     logging.info("end")
 
 
+def write_thread(input_queue, output_file):
+    logging.info("start")
+
+    total_count = 0
+    total_time_ns = 0
+
+    while True:
+        frame_info = input_queue.get()
+        try:
+            if frame_info is None:
+                break
+
+            start_ns = time.perf_counter_ns()
+
+            record = {
+                "frame_index": frame_info["frame_index"],
+                "result": frame_info["result"],
+            }
+            output_file.write(dump_json_compact(record) + "\n")
+
+            time_ns = time.perf_counter_ns() - start_ns
+
+            total_count += 1
+            total_time_ns += time_ns
+        finally:
+            input_queue.task_done()
+
+    logging.info("total_count=%d", total_count)
+    logging.info("total_time[ms]=%d", total_time_ns / 1000 / 1000)
+    logging.info("mean_time[ms]=%f", total_time_ns / total_count / 1000 / 1000)
+    logging.info("throughput/sec=%f", 1_000_000_000 / (total_time_ns / total_count))
+    logging.info("end")
+
+
+def start_read_worker(video_file_path, video_capture, output_queue):
+    worker = threading.Thread(
+        name="read",
+        target=read_thread,
+        daemon=True,
+        kwargs={
+            "video_file_path": video_file_path,
+            "video_capture": video_capture,
+            "output_queue": output_queue,
+        },
+    )
+    worker.start()
+    return worker
+
+
 def start_detection_workers(detector_base_urls, input_queue, output_queue):
     workers = []
 
@@ -148,6 +197,27 @@ def start_detection_workers(detector_base_urls, input_queue, output_queue):
     return workers
 
 
+def start_write_worker(input_queue, output_file):
+    worker = threading.Thread(
+        name="write",
+        target=write_thread,
+        daemon=True,
+        kwargs={
+            "input_queue": input_queue,
+            "output_file": output_file,
+        },
+    )
+    worker.start()
+    return worker
+
+
+def join_all_workers(workers, input_queue):
+    for _ in workers:
+        input_queue.put(None)
+    for worker in workers:
+        worker.join()
+
+
 @click.command()
 @click.argument("video_file_path", type=click.Path(exists=True))
 @click.argument("output_file_path", type=click.Path(exists=False))
@@ -164,19 +234,12 @@ def main(video_file_path, output_file_path):
     meta = make_video_meta(video_file_path, video_capture)
     print(meta)
 
-    frame_queue = queue.Queue(maxsize=100)
-
-    read_worker = threading.Thread(
-        name="read",
-        target=read_thread,
-        daemon=True,
-        kwargs={
-            "video_file_path": video_file_path,
-            "video_capture": video_capture,
-            "output_queue": frame_queue,
-        },
+    frame_queue = queue.Queue(maxsize=10)
+    read_worker = start_read_worker(
+        video_file_path=video_file_path,
+        video_capture=video_capture,
+        output_queue=frame_queue,
     )
-    read_worker.start()
 
     detection_queue = queue.Queue()
     detection_workers = start_detection_workers(
@@ -186,12 +249,13 @@ def main(video_file_path, output_file_path):
     output_file = output_file_path.open("w")
     output_file.write(dump_json_compact(meta) + "\n")
 
-    read_worker.join()
+    write_worker = start_write_worker(
+        input_queue=detection_queue, output_file=output_file
+    )
 
-    for _ in detection_workers:
-        frame_queue.put(None)
-    for worker in detection_workers:
-        worker.join()
+    read_worker.join()
+    join_all_workers(detection_workers, frame_queue)
+    join_all_workers([write_worker], detection_queue)
 
     output_file.close()
 
@@ -204,17 +268,3 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     main()
-
-
-"""
-detector_base_url = detector_base_urls[0]
-
-
-frame_index = 0
-record = {
-    "frame_index": frame_index,
-    "result": result,
-}
-
-    file.write(dump_json_compact(record) + "\n")
-"""

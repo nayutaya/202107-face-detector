@@ -16,15 +16,20 @@ def calc_sha1_hash(path):
         return hashlib.sha1(file.read()).hexdigest()
 
 
-video_path = pathlib.Path(sys.argv[1])
+def dump_json_compact(obj):
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
-sha1_hash = calc_sha1_hash(video_path)
 
-capture = cv2.VideoCapture(str(video_path))
+video_file_path = pathlib.Path(sys.argv[1])
+output_file_path = pathlib.Path(sys.argv[2])
+
+sha1_hash = calc_sha1_hash(video_file_path)
+
+capture = cv2.VideoCapture(str(video_file_path))
 assert capture.isOpened()
 meta = {
     "sha1": sha1_hash,
-    "size": video_path.stat().st_size,
+    "size": video_file_path.stat().st_size,
     "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
     "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
     "fps": capture.get(cv2.CAP_PROP_FPS),
@@ -47,7 +52,7 @@ detector_base_url = detector_base_urls[0]
 url = detector_base_url + "/detect"
 
 files = {
-    "file": (video_path.name, frame_bin, "application/octet-stream"),
+    "file": (video_file_path.name, frame_bin, "application/octet-stream"),
 }
 response = requests.post(url, files=files)
 print(response)
@@ -60,4 +65,6 @@ record = {
     "result": result,
 }
 
-print(json.dumps(record, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+with output_file_path.open("w") as file:
+    file.write(dump_json_compact(meta) + "\n")
+    file.write(dump_json_compact(record) + "\n")

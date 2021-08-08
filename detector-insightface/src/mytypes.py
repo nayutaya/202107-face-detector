@@ -54,6 +54,8 @@ class DetectResponse(BaseModel):
             attributes: Attributes
             embedding: str
 
+        hashTimeInNanoseconds: int
+        decodeTimeInNanoseconds: int
         detectionTimeInNanoseconds: int
         width: int
         height: int

@@ -69,9 +69,12 @@ async def get_root():
 @app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     image_bin = file.file.read()
+    start_time_ns = time.perf_counter_ns()
     sha1_hash = hashlib.sha1(image_bin).hexdigest()
+    hash_time_ns = time.perf_counter_ns() - start_time_ns
     file_size = len(image_bin)
 
+    start_time_ns = time.perf_counter_ns()
     if file.content_type == "image/jpeg" or file.content_type == "image/png":
         image_array = np.asarray(bytearray(image_bin), dtype=np.uint8)
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
@@ -80,10 +83,11 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
         image = np.load(image_io)
     else:
         raise fastapi.HTTPException(status_code=415)
+    decode_time_ns = time.perf_counter_ns() - start_time_ns
 
     start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
-    process_time_ns = time.perf_counter_ns() - start_time_ns
+    detection_time_ns = time.perf_counter_ns() - start_time_ns
 
     return {
         "service": SERVICE,
@@ -92,7 +96,9 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
         "response": {
-            "detectionTimeInNanoseconds": process_time_ns,
+            "hashTimeInNanoseconds": hash_time_ns,
+            "decodeTimeInNanoseconds": decode_time_ns,
+            "detectionTimeInNanoseconds": detection_time_ns,
             "width": image.shape[1],
             "height": image.shape[0],
             "numberOfFaces": len(faces),

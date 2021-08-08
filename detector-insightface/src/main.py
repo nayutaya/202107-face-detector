@@ -62,7 +62,7 @@ face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 async def get_root():
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
     }
 
 
@@ -91,7 +91,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
         "request": {
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
@@ -153,7 +153,7 @@ async def post_compare(request: mytypes.CompareRequest):
 
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
         "request": {
             "embeddings": request.embeddings,
             "pairs": request.pairs,

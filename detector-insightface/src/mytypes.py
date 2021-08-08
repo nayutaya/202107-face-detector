@@ -11,7 +11,7 @@ class ServiceResponse(BaseModel):
 
 class RootResponse(BaseModel):
     service: ServiceResponse
-    time: int
+    timeInMilliseconds: int
 
 
 class Point2D(BaseModel):
@@ -63,7 +63,7 @@ class DetectResponse(BaseModel):
         faces: List[Face]
 
     service: ServiceResponse
-    time: int
+    timeInMilliseconds: int
     request: Request
     response: Response
 
@@ -96,6 +96,6 @@ class CompareResponse(BaseModel):
         pairs: List[Pair]
 
     service: ServiceResponse
-    time: int
+    timeInMilliseconds: int
     request: Request
     response: Response

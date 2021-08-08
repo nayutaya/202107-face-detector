@@ -72,15 +72,14 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     sha1_hash = hashlib.sha1(image_bin).hexdigest()
     file_size = len(image_bin)
 
-    # TODO: PNG形式に対応する。
-    if file.content_type == "image/jpeg":
+    if file.content_type == "image/jpeg" or file.content_type == "image/png":
         image_array = np.asarray(bytearray(image_bin), dtype=np.uint8)
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
     elif file.content_type == "application/octet-stream":
         image_io = io.BytesIO(image_bin)
         image = np.load(image_io)
     else:
-        assert False  # TODO: ちゃんとエラーを発生させる
+        raise fastapi.HTTPException(status_code=415)
 
     start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)

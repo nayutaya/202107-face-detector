@@ -2,6 +2,7 @@
 
 import hashlib
 import io
+import json
 import pathlib
 import sys
 
@@ -50,3 +51,13 @@ files = {
 }
 response = requests.post(url, files=files)
 print(response)
+assert response.status_code == 200
+result = response.json()
+
+frame_index = 0
+record = {
+    "frame_index": frame_index,
+    "result": result,
+}
+
+print(json.dumps(record, sort_keys=True, separators=(",", ":"), ensure_ascii=False))

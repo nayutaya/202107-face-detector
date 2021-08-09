@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import itertools
 import json
 
 import click
@@ -19,14 +20,22 @@ def read_result_file(file_path):
     return (video_meta, video_frame_table)
 
 
+def draw_detection_result(frame, result):
+    faces = result["result"]["response"]["faces"]
+    for face in faces:
+        bbox = face["boundingBox"]
+        x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+        cv2.rectangle(
+            frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), thickness=1
+        )
+
+
 @click.command()
 @click.argument("video_file_path", type=click.Path(exists=True))
 @click.argument("result_file_path", type=click.Path(exists=True))
 @click.argument("output_file_path", type=click.Path(exists=False))
 def main(video_file_path, result_file_path, output_file_path):
     video_meta, video_frame_table = read_result_file(result_file_path)
-    print(video_meta)
-    print(len(video_frame_table))
 
     video_capture = cv2.VideoCapture(video_file_path)
     video_writer = cv2.VideoWriter(
@@ -36,12 +45,16 @@ def main(video_file_path, result_file_path, output_file_path):
         (video_meta["width"], video_meta["height"]),
     )
 
-    # while True:
-    for _ in range(10):
+    for frame_index in itertools.count():
         result, frame = video_capture.read()
         if not result:
             break
+
+        draw_detection_result(frame, video_frame_table[frame_index])
         video_writer.write(frame)
+
+        if frame_index >= 60:
+            break
 
     video_writer.release()
 

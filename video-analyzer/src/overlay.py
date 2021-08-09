@@ -21,13 +21,12 @@ def read_result_file(file_path):
 
 
 def draw_detection_result(frame, result):
+    color = (255, 255, 255)
     faces = result["result"]["response"]["faces"]
     for face in faces:
         bbox = face["boundingBox"]
         x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
-        cv2.rectangle(
-            frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), thickness=1
-        )
+        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness=2)
 
 
 @click.command()
@@ -52,9 +51,6 @@ def main(video_file_path, result_file_path, output_file_path):
 
         draw_detection_result(frame, video_frame_table[frame_index])
         video_writer.write(frame)
-
-        if frame_index >= 60:
-            break
 
     video_writer.release()
 

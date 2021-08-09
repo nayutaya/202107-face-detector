@@ -4,12 +4,12 @@ import hashlib
 import io
 import time
 
+import cv2
 import fastapi
 import fastapi.middleware.cors
 import insightface
 import numpy as np
 import onnxruntime
-import PIL.Image
 
 import mytypes
 
@@ -40,6 +40,7 @@ SERVICE = {
     "version": "0.4.0",
     "computingDevice": onnxruntime.get_device(),
     "libraries": {
+        "cv2": cv2.__version__,
         "insightface": insightface.__version__,
         "onnxruntime": onnxruntime.__version__,
     },
@@ -61,36 +62,43 @@ face_analysis.prepare(ctx_id=0, det_size=(640, 640))
 async def get_root():
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
     }
 
 
 @app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
-    # TODO: PNG形式に対応する。
-    # TODO: NumPy形式に対応する。
-    # TODO: OpenCVを使って画像を読み込むように変更する。（回転情報に対応するため）
-    assert file.content_type == "image/jpeg"
-    image = PIL.Image.open(file.file).convert("RGB")
-    image = np.array(image)
-    image = image[:, :, [2, 1, 0]]  # RGB to BGR
+    image_bin = file.file.read()
+    start_time_ns = time.perf_counter_ns()
+    sha1_hash = hashlib.sha1(image_bin).hexdigest()
+    hash_time_ns = time.perf_counter_ns() - start_time_ns
+    file_size = len(image_bin)
+
+    start_time_ns = time.perf_counter_ns()
+    if file.content_type == "image/jpeg" or file.content_type == "image/png":
+        image_array = np.asarray(bytearray(image_bin), dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    elif file.content_type == "application/octet-stream":
+        image_io = io.BytesIO(image_bin)
+        image = np.load(image_io)
+    else:
+        raise fastapi.HTTPException(status_code=415)
+    decode_time_ns = time.perf_counter_ns() - start_time_ns
 
     start_time_ns = time.perf_counter_ns()
     faces = face_analysis.get(image)
-    process_time_ns = time.perf_counter_ns() - start_time_ns
-
-    file.file.seek(0)
-    sha1_hash = hashlib.sha1(file.file.read()).hexdigest()
-    file_size = file.file.tell()
+    detection_time_ns = time.perf_counter_ns() - start_time_ns
 
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
         "request": {
             "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
         },
         "response": {
-            "detectionTimeInNanoseconds": process_time_ns,
+            "hashTimeInNanoseconds": hash_time_ns,
+            "decodeTimeInNanoseconds": decode_time_ns,
+            "detectionTimeInNanoseconds": detection_time_ns,
             "width": image.shape[1],
             "height": image.shape[0],
             "numberOfFaces": len(faces),
@@ -116,7 +124,10 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         for xyz in face.landmark_3d_68
                     ],
                     "landmarks2d106": [
-                        {"x": round(xy[0], 100), "y": round(xy[1], 100),}
+                        {
+                            "x": round(xy[0], 100),
+                            "y": round(xy[1], 100),
+                        }
                         for xy in face.landmark_2d_106
                     ],
                     "attributes": {"sex": face.sex, "age": face.age},
@@ -142,8 +153,11 @@ async def post_compare(request: mytypes.CompareRequest):
 
     return {
         "service": SERVICE,
-        "time": int(datetime.datetime.now().timestamp() * 1000),
-        "request": {"embeddings": request.embeddings, "pairs": request.pairs,},
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "request": {
+            "embeddings": request.embeddings,
+            "pairs": request.pairs,
+        },
         "response": {
             "comparisonTimeInNanoseconds": process_time_ns,
             "pairs": [

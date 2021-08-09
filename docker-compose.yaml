@@ -28,3 +28,9 @@ services:
     # working_dir: "/mnt/workspace/app" # DEBUG:
     # command: "/bin/bash" # DEBUG:
     # command: "npm run dev" # DEBUG:
+  video-analyzer:
+    build: "video-analyzer"
+    volumes:
+      - "./video-analyzer:/mnt/workspace" # DEBUG:
+    working_dir: "/mnt/workspace" # DEBUG:
+    command: "/bin/bash" # DEBUG:

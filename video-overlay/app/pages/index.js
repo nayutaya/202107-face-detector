@@ -192,6 +192,57 @@ function CheckBox({ id, checked, setChecked, children }) {
   );
 }
 
+function Video({ style, fps, src, onFrameChanged }) {
+  const refVideo = useRef(null);
+  const refTimerId = useRef(null);
+  const [paused, setPaused] = useState(true);
+
+  const onChanged = useCallback((event) => {
+    const videoElement = event.target;
+    setPaused(videoElement.paused);
+    // setCurrentFrameIndex(Math.floor(videoElement.currentTime * videoMeta.fps));
+    onFrameChanged(Math.floor(videoElement.currentTime * fps));
+  }, []);
+
+  const startTimer = useCallback(() => {
+    refTimerId.current = setInterval(() => {
+      if ( refVideo.current != null ) {
+        // setCurrentFrameIndex(Math.floor(refVideo.current.currentTime * videoMeta.fps));
+        onFrameChanged(Math.floor(refVideo.current.currentTime * fps));
+      }
+    }, 33);
+  }, [refTimerId, refVideo]);
+
+  const stopTimer = useCallback(() => {
+    if ( refTimerId.current != null ) {
+      clearInterval(refTimerId.current);
+      refTimerId.current = null;
+    }
+  }, [refTimerId]);
+
+  useEffect((x) => {
+    if ( paused ) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
+  }, [paused]);
+
+  return (
+    <video
+        style={style}
+        ref={refVideo}
+        src={src}
+        onLoadStart ={(e) => onChanged(e)}
+        onCanPlay   ={(e) => onChanged(e)}
+        onPause     ={(e) => onChanged(e)}
+        onPlay      ={(e) => onChanged(e)}
+        onSeeked    ={(e) => onChanged(e)}
+        onTimeUpdate={(e) => onChanged(e)}
+        controls={true} />
+  );
+}
+
 function Overlay({ videoMeta, videoData, frameIndex, shows }) {
   const frameData = videoData[frameIndex];
   return (
@@ -219,11 +270,8 @@ function Overlay({ videoMeta, videoData, frameIndex, shows }) {
 }
 
 export default function Page() {
-  const refVideo = useRef(null);
-  const refTimerId = useRef(null);
   const [videoMeta, setVideoMeta] = useState(null);
   const [videoData, setVideoData] = useState(null);
-  const [paused, setPaused] = useState(true);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [shows, setShows] = useState({
     boundingBox: true,
@@ -231,35 +279,6 @@ export default function Page() {
     score: true,
     keyPoints: true,
   });
-
-  const onChanged = useCallback((event) => {
-    const videoElement = event.target;
-    setPaused(videoElement.paused);
-    setCurrentFrameIndex(Math.floor(videoElement.currentTime * videoMeta.fps));
-  }, [videoMeta]);
-
-  const startTimer = useCallback(() => {
-    refTimerId.current = setInterval(() => {
-      if ( refVideo.current != null ) {
-        setCurrentFrameIndex(Math.floor(refVideo.current.currentTime * videoMeta.fps));
-      }
-    }, 33);
-  }, [refTimerId, refVideo, videoMeta]);
-
-  const stopTimer = useCallback(() => {
-    if ( refTimerId.current != null ) {
-      clearInterval(refTimerId.current);
-      refTimerId.current = null;
-    }
-  }, [refTimerId]);
-
-  useEffect((x) => {
-    if ( paused ) {
-      stopTimer();
-    } else {
-      startTimer();
-    }
-  }, [paused]);
 
   useEffect(async () => {
     const response = await fetch("/pixabay_76889_960x540.mp4.meta.json");
@@ -296,7 +315,7 @@ export default function Page() {
                 width: `${videoMeta.width}px`,
                 height: `${videoMeta.height}px`,
               }}>
-            <video
+            <Video
                 style={{
                   position: "absolute",
                   left: "0",
@@ -304,15 +323,9 @@ export default function Page() {
                   width: `${videoMeta.width}px`,
                   height: `${videoMeta.height}px`,
                 }}
-                ref={refVideo}
                 src={videoMeta.url}
-                onLoadStart ={(e) => onChanged(e)}
-                onCanPlay   ={(e) => onChanged(e)}
-                onPause     ={(e) => onChanged(e)}
-                onPlay      ={(e) => onChanged(e)}
-                onSeeked    ={(e) => onChanged(e)}
-                onTimeUpdate={(e) => onChanged(e)}
-                controls={true} />
+                fps={videoMeta.fps}
+                onFrameChanged={(i) => setCurrentFrameIndex(i)} />
             {videoData == null ? null : (
               <Overlay
                   videoMeta={videoData.meta}

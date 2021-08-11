@@ -56,13 +56,35 @@ function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth
   }
 }
 
+function ScoreBar({ face, color, height = 4, padding = 5, strokeWidth = 3, strokeOpacity = 0.7, fillOpacity = 0.8 }) {
+  const score = face[0];
+  const [ x1, y1, x2, y2 ] = face[1];
+  const width = x2 - x1;
+  return (
+    <g>
+      <rect
+          x={x1 + padding}
+          y={y1 + padding}
+          width={width - padding * 2}
+          height={height}
+          stroke="white"
+          strokeWidth={strokeWidth}
+          strokeOpacity={strokeOpacity}
+          fill="white"
+          fillOpacity={fillOpacity} />
+      <rect
+          x={x1 + padding}
+          y={y1 + padding}
+          width={(width - padding * 2) * score}
+          height={height}
+          fill={color}
+          fillOpacity={fillOpacity} />
+    </g>
+  );
+}
+
 function Face({ face, color, shows }) {
 /*
-      {!shows.score ? null :
-        <ScoreBar
-            face={face}
-            color={color} />
-      }
       {!shows.landmarks2d106 ? null :
         <KeyPoints
             points={face.landmarks2d106}
@@ -88,6 +110,11 @@ function Face({ face, color, shows }) {
     <g>
       {!shows.boundingBox ? null :
         <BoundingBox
+            face={face}
+            color={color} />
+      }
+      {!shows.score ? null :
+        <ScoreBar
             face={face}
             color={color} />
       }
@@ -214,6 +241,7 @@ export default function Page() {
                     faces={(videoData.data[currentFrameIndex] || [])[1]}
                     shows={{
                       boundingBox: true,
+                      score: true,
                     }}/>
               </svg>
             )}

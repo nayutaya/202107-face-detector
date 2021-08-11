@@ -16,17 +16,21 @@ export default function Page() {
     keyPoints: true,
   });
 
-  useEffect(async () => {
-    const response = await fetch("/pixabay_76889_960x540.mp4.meta.json");
-    const videoMeta = await response.json();
-    setVideoMeta(videoMeta);
+  useEffect(() => {
+    (async () => {
+      const response = await fetch("/pixabay_76889_960x540.mp4.meta.json");
+      const videoMeta = await response.json();
+      setVideoMeta(videoMeta);
+    })();
   }, []);
 
-  useEffect(async () => {
-    if ( videoMeta == null ) return;
-    const response = await fetch(videoMeta.dataUrl);
-    const videoData = await response.json();
-    setVideoData({meta: videoMeta, data: videoData});
+  useEffect(() => {
+    (async () => {
+      if ( videoMeta == null ) return;
+      const response = await fetch(videoMeta.dataUrl);
+      const videoData = await response.json();
+      setVideoData({meta: videoMeta, data: videoData});
+    })();
   }, [videoMeta]);
 
   const onTimeChanged = useCallback((time) => {

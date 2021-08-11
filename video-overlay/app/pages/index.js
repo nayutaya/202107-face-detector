@@ -34,7 +34,7 @@ export default function Page() {
   }, [videoMeta]);
 
   return (
-    <div>
+    <div style={{padding: "10px"}}>
       <Head>
         <title>video-overlay</title>
         <link rel="icon" href="/favicon.ico" />

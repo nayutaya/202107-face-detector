@@ -192,6 +192,32 @@ function CheckBox({ id, checked, setChecked, children }) {
   );
 }
 
+function Overlay({ videoMeta, videoData, frameIndex, shows }) {
+  const frameData = videoData[frameIndex];
+  return (
+    <svg
+        style={{
+          position: "absolute",
+          left: "0",
+          top: "0",
+          width: `${videoMeta.width}px`,
+          height: `${videoMeta.height}px`,
+          pointerEvents: "none",
+        }}
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewBox={`0 0 ${videoMeta.width} ${videoMeta.height}`}
+        width={videoMeta.width}
+        height={videoMeta.height}>
+      {frameData == null ? null : (
+        <Faces
+            faces={frameData[1]}
+            shows={shows}/>
+      )}
+    </svg>
+  );
+}
+
 export default function Page() {
   const refVideo = useRef(null);
   const refTimerId = useRef(null);
@@ -288,24 +314,11 @@ export default function Page() {
                 onTimeUpdate={(e) => onChanged(e)}
                 controls={true} />
             {videoData == null ? null : (
-              <svg
-                  style={{
-                    position: "absolute",
-                    left: "0",
-                    top: "0",
-                    width: `${videoMeta.width}px`,
-                    height: `${videoMeta.height}px`,
-                    pointerEvents: "none",
-                  }}
-                  xmlns="http://www.w3.org/2000/svg"
-                  version="1.1"
-                  viewBox={`0 0 ${videoMeta.width} ${videoMeta.height}`}
-                  width={videoMeta.width}
-                  height={videoMeta.height}>
-                <Faces
-                    faces={(videoData.data[currentFrameIndex] || [])[1]}
-                    shows={shows}/>
-              </svg>
+              <Overlay
+                  videoMeta={videoData.meta}
+                  videoData={videoData.data}
+                  frameIndex={currentFrameIndex}
+                  shows={shows} />
             )}
           </div>
         )}

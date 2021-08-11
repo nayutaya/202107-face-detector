@@ -114,13 +114,14 @@ function Attributes({ sex, age, x1, y1, x2, y2, color, fontSize = 16, opacity = 
   );
 }
 
-function Face({ face, color, shows }) {
-  const score = face[0];
-  const [ x1, y1, x2, y2 ] = face[1];
-  const keyPoints = face[2];
-  const attributes = face[3];
-  const sex = attributes[0];
-  const age = attributes[1];
+function Face({ face, shows }) {
+  const [
+    score,
+    [ x1, y1, x2, y2 ],
+    keyPoints,
+    [ sex, age ],
+  ] = face;
+  const color = {M: "#6666CC", F: "#CC6666"}[sex];
   return (
     <g>
       {!shows.boundingBox ? null :
@@ -161,14 +162,12 @@ function Face({ face, color, shows }) {
 
 function Faces({ faces, shows }) {
   if ( faces == null ) return null;
-  const colors = {M: "#6666CC", F: "#CC6666"};
   return (
     <g>
       {faces.map((face, index) => (
         <Face
             key={index}
             face={face}
-            color={colors[face[3][0]]}
             shows={shows} />
       ))}
     </g>

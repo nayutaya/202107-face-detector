@@ -18,20 +18,15 @@ export default function Page() {
 
   useEffect(() => {
     (async () => {
-      const response = await fetch("/pixabay_76889_960x540.mp4.meta.json");
-      const videoMeta = await response.json();
+      const videoMetaResponse = await fetch("/pixabay_76889_960x540.mp4.meta.json");
+      const videoMeta = await videoMetaResponse.json();
       setVideoMeta(videoMeta);
-    })();
-  }, []);
 
-  useEffect(() => {
-    (async () => {
-      if ( videoMeta == null ) return;
-      const response = await fetch(videoMeta.dataUrl);
-      const videoData = await response.json();
+      const videoDataResponse = await fetch(videoMeta.dataUrl);
+      const videoData = await videoDataResponse.json();
       setVideoData({meta: videoMeta, data: videoData});
     })();
-  }, [videoMeta]);
+  }, []);
 
   const onTimeChanged = useCallback((time) => {
     if ( videoMeta == null ) return;

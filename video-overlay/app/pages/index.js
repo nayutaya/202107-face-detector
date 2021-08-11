@@ -285,7 +285,7 @@ export default function Page() {
 
   const onTimeChanged = useCallback((time) => {
     if ( videoMeta == null ) return;
-    setFrameIndex(Math.floor(time * videoMeta.fps));
+    setFrameIndex(Math.min(Math.floor(time * videoMeta.fps), videoMeta.numberOfFrames - 1));
   }, [videoMeta]);
 
   return (

@@ -176,6 +176,24 @@ function Faces({ faces, shows }) {
   );
 }
 
+function CheckBox({ id, checked, setChecked, children }) {
+  return (
+    <label>
+      <input
+          type="checkbox"
+          checked={checked[id]}
+          onChange={(e) => {
+            const copied = {...checked};
+            copied[id] = e.target.checked;
+            setChecked(copied);
+          }} />
+      <span style={{cursor: "pointer"}}>
+        {children}
+      </span>
+    </label>
+  );
+}
+
 export default function Page() {
   const refVideo = useRef(null);
   const refTimerId = useRef(null);
@@ -183,6 +201,12 @@ export default function Page() {
   const [videoData, setVideoData] = useState(null);
   const [paused, setPaused] = useState(true);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [shows, setShows] = useState({
+    boundingBox: true,
+    attributes: true,
+    score: true,
+    keyPoints: true,
+  });
 
   const onChanged = useCallback((event) => {
     const videoElement = event.target;
@@ -233,6 +257,14 @@ export default function Page() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div>
+        [&nbsp;
+        <CheckBox id="boundingBox" checked={shows} setChecked={setShows}>Bounding Box</CheckBox> |
+        <CheckBox id="score" checked={shows} setChecked={setShows}>Score</CheckBox> |
+        <CheckBox id="attributes" checked={shows} setChecked={setShows}>Attributes</CheckBox> |
+        <CheckBox id="keyPoints" checked={shows} setChecked={setShows}><span style={{color: "#009900"}}>●</span>Key Points</CheckBox>
+        &nbsp;]
+      </div>
+      <div>
         {videoMeta == null ? null : (
           <div
               style={{
@@ -274,12 +306,7 @@ export default function Page() {
                   height={videoMeta.height}>
                 <Faces
                     faces={(videoData.data[currentFrameIndex] || [])[1]}
-                    shows={{
-                      boundingBox: true,
-                      score: true,
-                      keyPoints: true,
-                      attributes: true,
-                    }}/>
+                    shows={shows}/>
               </svg>
             )}
           </div>

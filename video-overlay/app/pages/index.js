@@ -83,23 +83,25 @@ function ScoreBar({ face, color, height = 4, padding = 5, strokeWidth = 3, strok
   );
 }
 
+function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
+  return (
+    <g>
+      {points.map(([ x, y ], index) => (
+        <circle
+            key={index}
+            cx={x}
+            cy={y}
+            r={radius}
+            stroke="none"
+            fill={color}
+            fillOpacity={fillOpacity} />
+      ))}
+    </g>
+  );
+}
+
 function Face({ face, color, shows }) {
 /*
-      {!shows.landmarks2d106 ? null :
-        <KeyPoints
-            points={face.landmarks2d106}
-            color={"#CC0000"} />
-      }
-      {!shows.landmarks3d68 ? null :
-        <KeyPoints
-            points={face.landmarks3d68}
-            color={"#0000CC"} />
-      }
-      {!shows.keyPoints ? null :
-        <KeyPoints
-            points={face.keyPoints}
-            color={"#009900"} />
-      }
       {!shows.attributes ? null :
         <Attributes
             face={face}
@@ -117,6 +119,11 @@ function Face({ face, color, shows }) {
         <ScoreBar
             face={face}
             color={color} />
+      }
+      {!shows.keyPoints ? null :
+        <KeyPoints
+            points={face[2]}
+            color={"#009900"} />
       }
     </g>
   );
@@ -242,6 +249,7 @@ export default function Page() {
                     shows={{
                       boundingBox: true,
                       score: true,
+                      keyPoints: true,
                     }}/>
               </svg>
             )}

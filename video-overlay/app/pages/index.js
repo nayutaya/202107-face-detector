@@ -192,7 +192,7 @@ function CheckBox({ id, checked, setChecked, children }) {
   );
 }
 
-function Video({ style, fps, src, onFrameChanged }) {
+function Video({ style, src, onTimeChanged }) {
   const refVideo = useRef(null);
   const refTimerId = useRef(null);
   const [paused, setPaused] = useState(true);
@@ -200,13 +200,13 @@ function Video({ style, fps, src, onFrameChanged }) {
   const onChanged = useCallback((event) => {
     const videoElement = event.target;
     setPaused(videoElement.paused);
-    onFrameChanged(Math.floor(videoElement.currentTime * fps));
+    onTimeChanged(videoElement.currentTime);
   }, []);
 
   const startTimer = useCallback(() => {
     refTimerId.current = setInterval(() => {
       if ( refVideo.current != null ) {
-        onFrameChanged(Math.floor(refVideo.current.currentTime * fps));
+        onTimeChanged(refVideo.current.currentTime);
       }
     }, 33);
   }, [refTimerId, refVideo]);
@@ -284,6 +284,11 @@ export default function Page() {
     setVideoData({meta: videoMeta, data: videoData});
   }, [videoMeta]);
 
+  const onTimeChanged = useCallback((time) => {
+    if ( videoMeta == null ) return;
+    setFrameIndex(Math.floor(time * videoMeta.fps));
+  }, [videoMeta]);
+
   return (
     <div>
       <Head>
@@ -315,8 +320,7 @@ export default function Page() {
                   height: `${videoMeta.height}px`,
                 }}
                 src={videoMeta.url}
-                fps={videoMeta.fps}
-                onFrameChanged={(i) => setFrameIndex(i)} />
+                onTimeChanged={onTimeChanged} />
             {videoData == null ? null : (
               <Overlay
                   style={{

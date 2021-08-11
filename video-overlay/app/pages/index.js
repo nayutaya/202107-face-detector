@@ -200,14 +200,12 @@ function Video({ style, fps, src, onFrameChanged }) {
   const onChanged = useCallback((event) => {
     const videoElement = event.target;
     setPaused(videoElement.paused);
-    // setCurrentFrameIndex(Math.floor(videoElement.currentTime * videoMeta.fps));
     onFrameChanged(Math.floor(videoElement.currentTime * fps));
   }, []);
 
   const startTimer = useCallback(() => {
     refTimerId.current = setInterval(() => {
       if ( refVideo.current != null ) {
-        // setCurrentFrameIndex(Math.floor(refVideo.current.currentTime * videoMeta.fps));
         onFrameChanged(Math.floor(refVideo.current.currentTime * fps));
       }
     }, 33);
@@ -243,23 +241,16 @@ function Video({ style, fps, src, onFrameChanged }) {
   );
 }
 
-function Overlay({ videoMeta, videoData, frameIndex, shows }) {
+function Overlay({ style, width, height, videoData, frameIndex, shows }) {
   const frameData = videoData[frameIndex];
   return (
     <svg
-        style={{
-          position: "absolute",
-          left: "0",
-          top: "0",
-          width: `${videoMeta.width}px`,
-          height: `${videoMeta.height}px`,
-          pointerEvents: "none",
-        }}
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
-        viewBox={`0 0 ${videoMeta.width} ${videoMeta.height}`}
-        width={videoMeta.width}
-        height={videoMeta.height}>
+        viewBox={`0 0 ${width} ${height}`}
+        style={style}
+        width={width}
+        height={height}>
       {frameData == null ? null : (
         <Faces
             faces={frameData[1]}
@@ -272,7 +263,7 @@ function Overlay({ videoMeta, videoData, frameIndex, shows }) {
 export default function Page() {
   const [videoMeta, setVideoMeta] = useState(null);
   const [videoData, setVideoData] = useState(null);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [frameIndex, setFrameIndex] = useState(0);
   const [shows, setShows] = useState({
     boundingBox: true,
     attributes: true,
@@ -325,12 +316,21 @@ export default function Page() {
                 }}
                 src={videoMeta.url}
                 fps={videoMeta.fps}
-                onFrameChanged={(i) => setCurrentFrameIndex(i)} />
+                onFrameChanged={(i) => setFrameIndex(i)} />
             {videoData == null ? null : (
               <Overlay
-                  videoMeta={videoData.meta}
+                  style={{
+                    position: "absolute",
+                    left: "0",
+                    top: "0",
+                    width: `${videoData.meta.width}px`,
+                    height: `${videoData.meta.height}px`,
+                    pointerEvents: "none",
+                  }}
+                  width={videoData.meta.width}
+                  height={videoData.meta.height}
                   videoData={videoData.data}
-                  frameIndex={currentFrameIndex}
+                  frameIndex={frameIndex}
                   shows={shows} />
             )}
           </div>

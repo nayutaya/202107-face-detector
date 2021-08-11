@@ -4,24 +4,23 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 export default function Page() {
   const refVideo = useRef(null);
   const refTimerId = useRef(null);
+  const [videoMeta, setVideoMeta] = useState(null);
   const [paused, setPaused] = useState(true);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-
-  const fps = 29.97;
 
   const onChanged = useCallback((event) => {
     const videoElement = event.target;
     setPaused(videoElement.paused);
-    setCurrentFrameIndex(Math.floor(videoElement.currentTime * fps));
-  }, []);
+    setCurrentFrameIndex(Math.floor(videoElement.currentTime * videoMeta.fps));
+  }, [videoMeta]);
 
   const startTimer = useCallback(() => {
     refTimerId.current = setInterval(() => {
       if ( refVideo.current != null ) {
-        setCurrentFrameIndex(Math.floor(refVideo.current.currentTime * fps));
+        setCurrentFrameIndex(Math.floor(refVideo.current.currentTime * videoMeta.fps));
       }
     }, 33);
-  }, [refTimerId, refVideo]);
+  }, [refTimerId, refVideo, videoMeta]);
 
   const stopTimer = useCallback(() => {
     if ( refTimerId.current != null ) {
@@ -38,6 +37,12 @@ export default function Page() {
     }
   }, [paused]);
 
+  useEffect(async () => {
+    const response = await fetch("/pixabay_76889_960x540.mp4.meta.json");
+    const videoMeta = await response.json();
+    setVideoMeta(videoMeta);
+  }, []);
+
   return (
     <div>
       <Head>
@@ -47,16 +52,18 @@ export default function Page() {
       <div>video-overlay</div>
       <div>currentFrameIndex: {currentFrameIndex}</div>
       <div>
-        <video
-            ref={refVideo}
-            src="/pixabay_76889_960x540.mp4"
-            onLoadStart ={(e) => onChanged(e)}
-            onCanPlay   ={(e) => onChanged(e)}
-            onPause     ={(e) => onChanged(e)}
-            onPlay      ={(e) => onChanged(e)}
-            onSeeked    ={(e) => onChanged(e)}
-            onTimeUpdate={(e) => onChanged(e)}
-            controls={true} />
+        {videoMeta == null ? null : (
+          <video
+              ref={refVideo}
+              src={videoMeta.url}
+              onLoadStart ={(e) => onChanged(e)}
+              onCanPlay   ={(e) => onChanged(e)}
+              onPause     ={(e) => onChanged(e)}
+              onPlay      ={(e) => onChanged(e)}
+              onSeeked    ={(e) => onChanged(e)}
+              onTimeUpdate={(e) => onChanged(e)}
+              controls={true} />
+        )}
       </div>
     </div>
   );

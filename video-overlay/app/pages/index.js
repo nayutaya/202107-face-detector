@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 export default function Page() {
   // const [videoState, setVideoState] = useState({paused: true, currentTime: null});
@@ -18,22 +18,28 @@ export default function Page() {
     // console.log("onChanged:", videoRef.current);
   };
 
-  const onTimer = () => {
-    console.log("timer");
-    console.log("onTimer:", videoRef.current);
-  };
+  const startTimer = useCallback(() => {
+    console.log("start timer");
+    refTimerId.current = setInterval(() => {
+      console.log("timer");
+      console.log("onTimer:", videoRef.current);
+    }, 500);
+  }, [videoRef]);
+
+  const stopTimer = useCallback(() => {
+    console.log("stop timer");
+    if ( refTimerId.current != null ) {
+      clearInterval(refTimerId.current);
+      refTimerId.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     // console.log({paused});
     if ( paused ) {
-      console.log("stop timer");
-      if ( refTimerId.current != null ) {
-        clearInterval(refTimerId.current);
-        refTimerId.current = null;
-      }
+      stopTimer();
     } else {
-      console.log("start timer");
-      refTimerId.current = setInterval(onTimer, 500);
+      startTimer();
     }
   }, [paused]);
 

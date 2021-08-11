@@ -1,64 +1,49 @@
 import Head from "next/head";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-function BoundingBox({ face, color, size = 0.2, strokeOpacity = 0.7, strokeWidth = 3, border = 2 }) {
-  const [ x1, y1, x2, y2 ] = face[1];
-  if ( false ) {
-    return (
-      <rect
-          x={x1}
-          y={y1}
-          width={x2 - x1}
-          height={y2 - y1}
-          stroke={color}
+function BoundingBox({ x1, y1, x2, y2, color, size = 0.2, strokeOpacity = 0.7, strokeWidth = 3, border = 2 }) {
+  const dx = (x2 - x1) * size;
+  const dy = (y2 - y1) * size;
+  return (
+    <g>
+      <path
+          d={
+            `M${x1 - border},${y1 + dy} L${x1 - border},${y1 - border}  L${x1 + dx},${y1 - border}`
+            + ` M${x2 + border},${y1 + dy} L${x2 + border},${y1 - border}  L${x2 - dx},${y1 - border}`
+            + ` M${x1 - border},${y2 - dy} L${x1 - border},${y2 + border}  L${x1 + dx},${y2 + border}`
+            + ` M${x2 + border},${y2 - dy} L${x2 + border},${y2 + border}  L${x2 - dx},${y2 + border}`
+          }
+          stroke="white"
+          strokeOpacity={strokeOpacity}
+          strokeWidth={border}
           fill="none" />
-    );
-  } else {
-    const dx = (x2 - x1) * size;
-    const dy = (y2 - y1) * size;
-    return (
-      <g>
-        <path
-            d={
-              `M${x1 - border},${y1 + dy} L${x1 - border},${y1 - border}  L${x1 + dx},${y1 - border}`
-              + ` M${x2 + border},${y1 + dy} L${x2 + border},${y1 - border}  L${x2 - dx},${y1 - border}`
-              + ` M${x1 - border},${y2 - dy} L${x1 - border},${y2 + border}  L${x1 + dx},${y2 + border}`
-              + ` M${x2 + border},${y2 - dy} L${x2 + border},${y2 + border}  L${x2 - dx},${y2 + border}`
-            }
-            stroke="white"
-            strokeOpacity={strokeOpacity}
-            strokeWidth={border}
-            fill="none" />
-        <path
-            d={
-              `M${x1 + border},${y1 + dy} L${x1 + border},${y1 + border}  L${x1 + dx},${y1 + border}`
-              + ` M${x2 - border},${y1 + dy} L${x2 - border},${y1 + border}  L${x2 - dx},${y1 + border}`
-              + ` M${x1 + border},${y2 - dy} L${x1 + border},${y2 - border}  L${x1 + dx},${y2 - border}`
-              + ` M${x2 - border},${y2 - dy} L${x2 - border},${y2 - border}  L${x2 - dx},${y2 - border}`
-            }
-            stroke="white"
-            strokeOpacity={strokeOpacity}
-            strokeWidth={border}
-            fill="none" />
-        <path
-            d={
-              `M${x1},${y1 + dy} L${x1},${y1}  L${x1 + dx},${y1}`
-              + ` M${x2},${y1 + dy} L${x2},${y1}  L${x2 - dx},${y1}`
-              + ` M${x1},${y2 - dy} L${x1},${y2}  L${x1 + dx},${y2}`
-              + ` M${x2},${y2 - dy} L${x2},${y2}  L${x2 - dx},${y2}`
-            }
-            stroke={color}
-            strokeOpacity={strokeOpacity}
-            strokeWidth={strokeWidth}
-            fill="none" />
-      </g>
-    );
-  }
+      <path
+          d={
+            `M${x1 + border},${y1 + dy} L${x1 + border},${y1 + border}  L${x1 + dx},${y1 + border}`
+            + ` M${x2 - border},${y1 + dy} L${x2 - border},${y1 + border}  L${x2 - dx},${y1 + border}`
+            + ` M${x1 + border},${y2 - dy} L${x1 + border},${y2 - border}  L${x1 + dx},${y2 - border}`
+            + ` M${x2 - border},${y2 - dy} L${x2 - border},${y2 - border}  L${x2 - dx},${y2 - border}`
+          }
+          stroke="white"
+          strokeOpacity={strokeOpacity}
+          strokeWidth={border}
+          fill="none" />
+      <path
+          d={
+            `M${x1},${y1 + dy} L${x1},${y1}  L${x1 + dx},${y1}`
+            + ` M${x2},${y1 + dy} L${x2},${y1}  L${x2 - dx},${y1}`
+            + ` M${x1},${y2 - dy} L${x1},${y2}  L${x1 + dx},${y2}`
+            + ` M${x2},${y2 - dy} L${x2},${y2}  L${x2 - dx},${y2}`
+          }
+          stroke={color}
+          strokeOpacity={strokeOpacity}
+          strokeWidth={strokeWidth}
+          fill="none" />
+    </g>
+  );
 }
 
-function ScoreBar({ face, color, height = 4, padding = 5, strokeWidth = 3, strokeOpacity = 0.7, fillOpacity = 0.8 }) {
-  const score = face[0];
-  const [ x1, y1, x2, y2 ] = face[1];
+function ScoreBar({ score, x1, y1, x2, y2, color, height = 4, padding = 5, strokeWidth = 3, strokeOpacity = 0.7, fillOpacity = 0.8 }) {
   const width = x2 - x1;
   return (
     <g>
@@ -100,11 +85,7 @@ function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
   );
 }
 
-function Attributes({ face, color, fontSize = 16, opacity = 0.9, strokeWidth = 3 }) {
-  const [ x1, y1, x2, y2 ] = face[1];
-  const attributes = face[3];
-  const sex = attributes[0];
-  const age = attributes[1];
+function Attributes({ sex, age, x1, y1, x2, y2, color, fontSize = 16, opacity = 0.9, strokeWidth = 3 }) {
   const x = x1;
   const y = y1 - 7;
   const label = `Sex: ${sex} / Age: ${age}`;
@@ -134,26 +115,44 @@ function Attributes({ face, color, fontSize = 16, opacity = 0.9, strokeWidth = 3
 }
 
 function Face({ face, color, shows }) {
+  const score = face[0];
+  const [ x1, y1, x2, y2 ] = face[1];
+  const keyPoints = face[2];
+  const attributes = face[3];
+  const sex = attributes[0];
+  const age = attributes[1];
   return (
     <g>
       {!shows.boundingBox ? null :
         <BoundingBox
-            face={face}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
             color={color} />
       }
       {!shows.score ? null :
         <ScoreBar
-            face={face}
+            score={score}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
             color={color} />
       }
       {!shows.keyPoints ? null :
         <KeyPoints
-            points={face[2]}
+            points={keyPoints}
             color={"#009900"} />
       }
       {!shows.attributes ? null :
         <Attributes
-            face={face}
+            sex={sex}
+            age={age}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
             color={color} />
       }
     </g>

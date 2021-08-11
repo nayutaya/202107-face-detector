@@ -100,14 +100,40 @@ function KeyPoints({ points, color, radius = 2, fillOpacity = 0.5 }) {
   );
 }
 
+function Attributes({ face, color, fontSize = 16, opacity = 0.9, strokeWidth = 3 }) {
+  const [ x1, y1, x2, y2 ] = face[1];
+  const attributes = face[3];
+  const sex = attributes[0];
+  const age = attributes[1];
+  const x = x1;
+  const y = y1 - 7;
+  const label = `Sex: ${sex} / Age: ${age}`;
+  return (
+    <g>
+      <text
+          x={x}
+          y={y}
+          fontSize={fontSize}
+          stroke="white"
+          strokeWidth={strokeWidth}
+          strokeOpacity={opacity}
+          fill="none">
+        {label}
+      </text>
+      <text
+          x={x}
+          y={y}
+          fontSize={fontSize}
+          stroke="none"
+          fill={color}
+          fillOpacity={opacity} >
+        {label}
+      </text>
+    </g>
+  );
+}
+
 function Face({ face, color, shows }) {
-/*
-      {!shows.attributes ? null :
-        <Attributes
-            face={face}
-            color={color} />
-      }
-*/
   return (
     <g>
       {!shows.boundingBox ? null :
@@ -124,6 +150,11 @@ function Face({ face, color, shows }) {
         <KeyPoints
             points={face[2]}
             color={"#009900"} />
+      }
+      {!shows.attributes ? null :
+        <Attributes
+            face={face}
+            color={color} />
       }
     </g>
   );
@@ -190,7 +221,6 @@ export default function Page() {
 
   useEffect(async () => {
     if ( videoMeta == null ) return;
-    console.log("loding...");
     const response = await fetch(videoMeta.dataUrl);
     const videoData = await response.json();
     setVideoData({meta: videoMeta, data: videoData});
@@ -202,8 +232,6 @@ export default function Page() {
         <title>video-overlay</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div>video-overlay</div>
-      <div>currentFrameIndex: {currentFrameIndex}</div>
       <div>
         {videoMeta == null ? null : (
           <div
@@ -250,6 +278,7 @@ export default function Page() {
                       boundingBox: true,
                       score: true,
                       keyPoints: true,
+                      attributes: true,
                     }}/>
               </svg>
             )}

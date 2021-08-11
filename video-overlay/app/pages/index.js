@@ -241,8 +241,7 @@ function Video({ style, src, onTimeChanged }) {
   );
 }
 
-function Overlay({ style, width, height, videoData, frameIndex, shows }) {
-  const frameData = videoData[frameIndex];
+function Overlay({ style, width, height, faces, shows }) {
   return (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -251,9 +250,9 @@ function Overlay({ style, width, height, videoData, frameIndex, shows }) {
         style={style}
         width={width}
         height={height}>
-      {frameData == null ? null : (
+      {faces == null ? null : (
         <Faces
-            faces={frameData[1]}
+            faces={faces}
             shows={shows}/>
       )}
     </svg>
@@ -333,8 +332,7 @@ export default function Page() {
                   }}
                   width={videoData.meta.width}
                   height={videoData.meta.height}
-                  videoData={videoData.data}
-                  frameIndex={frameIndex}
+                  faces={(videoData.data[frameIndex] || [])[1]}
                   shows={shows} />
             )}
           </div>

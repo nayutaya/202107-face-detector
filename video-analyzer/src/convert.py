@@ -20,17 +20,6 @@ def read_result_file(file_path):
     return (video_meta, video_frame_table)
 
 
-"""
-def draw_detection_result(frame, result):
-    color = (255, 255, 255)
-    faces = result["result"]["response"]["faces"]
-    for face in faces:
-        bbox = face["boundingBox"]
-        x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
-        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness=2)
-"""
-
-
 @click.command()
 @click.argument("result_file_path", type=click.Path(exists=True))
 @click.argument("output_file_path", type=click.Path(exists=False))

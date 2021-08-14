@@ -39,8 +39,8 @@ services:
     user: "1000:1000"
     ports:
       - "8002:3000"
-    volumes:
-      - "./video-overlay:/mnt/workspace" # DEBUG:
-    working_dir: "/mnt/workspace/app" # DEBUG:
+    # volumes:
+      # - "./video-overlay:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace/app" # DEBUG:
     # command: "/bin/bash" # DEBUG:
-    command: "npm run dev" # DEBUG:
+    # command: "npm run dev" # DEBUG:
